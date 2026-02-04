@@ -34,6 +34,41 @@ export async function render(site: DocSite, outDir: string): Promise<void> {
 
   // Write search index
   await writeFile(join(outDir, 'search-index.json'), JSON.stringify(site.searchIndex, null, 2));
+
+  // Write root redirect to package index
+  const redirectHtml = rootRedirectTemplate(site.rootPackage.name, site.config.baseUrl);
+  await writeFile(join(outDir, 'index.html'), redirectHtml);
+}
+
+/**
+ * Generate a redirect HTML page for the root URL.
+ */
+function rootRedirectTemplate(packageName: string, baseUrl: string): string {
+  const targetUrl = `${baseUrl}${packageName}/`.replace(/\/+/g, '/');
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; url=${targetUrl}">
+  <title>Redirecting...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    a { color: #58a6ff; }
+  </style>
+</head>
+<body>
+  <p>Redirecting to <a href="${targetUrl}">${packageName} documentation</a>...</p>
+</body>
+</html>`;
 }
 
 /**
