@@ -24,7 +24,7 @@ channels = ["https://conda.modular.com/max-nightly", "conda-forge"]
 preview = ["pixi-build"]
 
 [feature.dev.dependencies]
-mojodoc = { git = "https://github.com/ehsanmok/mojodoc.git" }
+mojodoc = { git = "https://github.com/ehsanmok/mojodoc.git", branch = "main" }
 
 [environments]
 dev = { features = ["dev"] }
