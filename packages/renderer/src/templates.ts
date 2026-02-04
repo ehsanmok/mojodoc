@@ -82,7 +82,7 @@ export function layoutTemplate(content: string, site: DocSite, currentPath: stri
       <!-- Sidebar -->
       <aside class="sidebar" id="sidebar">
         <nav class="nav-tree">
-          ${renderNavTree(site.navTree, currentPath)}
+          ${renderNavTree(site.navTree, currentPath, site.config.baseUrl)}
         </nav>
       </aside>
 
@@ -111,6 +111,7 @@ export function layoutTemplate(content: string, site: DocSite, currentPath: stri
 
   <script>
     window.SEARCH_INDEX = ${JSON.stringify(site.searchIndex)};
+    window.BASE_URL = ${JSON.stringify(site.config.baseUrl)};
   </script>
   <script src="${site.config.baseUrl}assets/main.js"></script>
 </body>
@@ -120,7 +121,7 @@ export function layoutTemplate(content: string, site: DocSite, currentPath: stri
 /**
  * Render navigation tree.
  */
-function renderNavTree(nodes: NavNode[], currentPath: string): string {
+function renderNavTree(nodes: NavNode[], currentPath: string, baseUrl: string): string {
   return nodes
     .map((node) => {
       const isActive = currentPath.startsWith(node.urlPath);
@@ -128,7 +129,7 @@ function renderNavTree(nodes: NavNode[], currentPath: string): string {
 
       return `
       <div class="nav-node ${isActive ? 'active' : ''}">
-        <a href="/${node.urlPath}/index.html" class="nav-link ${node.type}">
+        <a href="${baseUrl}${node.urlPath}/index.html" class="nav-link ${node.type}">
           <span class="nav-icon">${node.type === 'package' ? '📦' : '📄'}</span>
           <span class="nav-name">${escapeHtml(node.name)}</span>
           ${hasChildren ? '<span class="nav-arrow">▸</span>' : ''}
@@ -137,7 +138,7 @@ function renderNavTree(nodes: NavNode[], currentPath: string): string {
           hasChildren
             ? `
           <div class="nav-children">
-            ${renderNavTree(node.children, currentPath)}
+            ${renderNavTree(node.children, currentPath, baseUrl)}
           </div>
         `
             : ''
@@ -149,7 +150,7 @@ function renderNavTree(nodes: NavNode[], currentPath: string): string {
             ${node.items
               .map(
                 (item) => `
-              <a href="/${node.urlPath}/index.html#${item.anchor}" class="nav-item ${item.kind}">
+              <a href="${baseUrl}${node.urlPath}/index.html#${item.anchor}" class="nav-item ${item.kind}">
                 <span class="nav-item-badge">${kindBadge(item.kind)}</span>
                 <span class="nav-item-name">${escapeHtml(item.name)}</span>
               </a>
@@ -191,7 +192,11 @@ function kindBadge(kind: string): string {
 /**
  * Generate module page HTML.
  */
-export function moduleTemplate(mod: Module, sourceLink: string | null = null): string {
+export function moduleTemplate(
+  mod: Module,
+  sourceLink: string | null = null,
+  baseUrl: string = '/'
+): string {
   return `
     <article class="module-page">
       <header class="page-header">
@@ -200,7 +205,7 @@ export function moduleTemplate(mod: Module, sourceLink: string | null = null): s
             .split('.')
             .map(
               (p, i, arr) =>
-                `<a href="/${arr.slice(0, i + 1).join('/')}/index.html">${escapeHtml(p)}</a>`
+                `<a href="${baseUrl}${arr.slice(0, i + 1).join('/')}/index.html">${escapeHtml(p)}</a>`
             )
             .join('<span class="separator">/</span>')}
         </div>
@@ -604,7 +609,10 @@ export function aliasTemplate(alias: AliasItem): string {
 /**
  * Generate index page for a package.
  */
-export function packageIndexTemplate(pkg: import('@mojodoc/transform').Package): string {
+export function packageIndexTemplate(
+  pkg: import('@mojodoc/transform').Package,
+  baseUrl: string = '/'
+): string {
   return `
     <article class="package-page">
       <header class="page-header">
@@ -638,7 +646,7 @@ export function packageIndexTemplate(pkg: import('@mojodoc/transform').Package):
                 ${section.items
                   .map(
                     (item) => `
-                  <a href="/${item.urlPath}/index.html#${item.anchor}" class="api-card ${item.kind}">
+                  <a href="${baseUrl}${item.urlPath}/index.html#${item.anchor}" class="api-card ${item.kind}">
                     <div class="api-card-header">
                       <span class="kind-badge ${item.kind}">${kindBadge(item.kind)}</span>
                       <span class="api-name">${escapeHtml(item.name)}</span>

@@ -97,7 +97,7 @@ async function renderPackage(
   const currentPath = parentPath ? `${parentPath}/${pkg.name}` : pkg.name;
 
   // Render package index
-  const indexContent = packageIndexTemplate(pkg);
+  const indexContent = packageIndexTemplate(pkg, site.config.baseUrl);
   const indexHtml = layoutTemplate(indexContent, site, currentPath);
   await writeFile(join(pkgDir, 'index.html'), indexHtml);
 
@@ -137,7 +137,7 @@ async function renderModule(
     ? buildSourceLink(site.config.repository, site.rootPackage.name, mod.sourceFile)
     : null;
 
-  const content = moduleTemplate(mod, sourceLink);
+  const content = moduleTemplate(mod, sourceLink, site.config.baseUrl);
   const html = layoutTemplate(content, site, currentPath);
 
   await writeFile(join(modDir, 'index.html'), html);

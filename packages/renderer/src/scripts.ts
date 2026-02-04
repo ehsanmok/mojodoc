@@ -137,8 +137,9 @@ export const scripts = `
       return;
     }
 
+    const baseUrl = window.BASE_URL || '/';
     searchResults.innerHTML = results.map((item, idx) => \`
-      <a href="/\${item.urlPath}/index.html#\${item.anchor}"
+      <a href="\${baseUrl}\${item.urlPath}/index.html#\${item.anchor}"
          class="search-result \${idx === selectedIndex ? 'selected' : ''}"
          data-index="\${idx}">
         <div class="search-result-header">
