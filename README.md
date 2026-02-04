@@ -27,7 +27,7 @@ preview = ["pixi-build"]
 mojodoc = { git = "https://github.com/ehsanmok/mojodoc.git" }
 
 [environments]
-default = { features = ["dev"] }
+dev = { features = ["dev"] }
 ```
 
 ## Usage
@@ -36,19 +36,21 @@ Generate and view documentation:
 
 ```bash
 # Build docs and open in browser
-pixi run mojodoc ./mypackage --open
+pixi run -e dev mojodoc ./mypackage --open
 
 # Build without opening browser
-pixi run mojodoc ./mypackage
+pixi run -e dev mojodoc ./mypackage
 
 # Specify custom output directory
-pixi run mojodoc ./mypackage --out-dir ./docs
+pixi run -e dev mojodoc ./mypackage --out-dir ./docs
 
 # Use a different port (default: 3000)
-pixi run mojodoc ./mypackage --open --port 8080
+pixi run -e dev mojodoc ./mypackage --open --port 8080
 ```
 
-> mojodoc expects a **pixi-based project** with `pixi.toml`. The path should point to your Mojo **package directory** (containing `__init__.mojo`):
+**Note:** Use `-e dev` because mojodoc is installed in the `dev` environment.
+
+mojodoc expects a **pixi-based project** with `pixi.toml`. The path should point to your Mojo **package directory** (containing `__init__.mojo`):
 
 ```
 myproject/
