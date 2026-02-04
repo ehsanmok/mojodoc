@@ -1,0 +1,62 @@
+# rattler-build recipe for mojodoc
+# This builds mojodoc as a conda package for distribution
+
+context:
+  name: mojodoc
+  version: "0.0.1"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  path: .
+
+build:
+  script:
+    - node --version
+    - pnpm --version
+    # Install dependencies
+    - pnpm install --frozen-lockfile=false
+    # Build TypeScript
+    - pnpm run build
+    # Create bin directory
+    - mkdir -p $PREFIX/bin
+    - mkdir -p $PREFIX/lib/mojodoc
+    # Copy built files
+    - cp -r packages $PREFIX/lib/mojodoc/
+    - cp package.json $PREFIX/lib/mojodoc/
+    - cp pnpm-workspace.yaml $PREFIX/lib/mojodoc/
+    # Install production dependencies in the lib folder
+    - cd $PREFIX/lib/mojodoc && pnpm install --prod --frozen-lockfile=false
+    # Create wrapper script
+    - |
+      cat > $PREFIX/bin/mojodoc << 'WRAPPER'
+      #!/usr/bin/env bash
+      SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+      exec node "$SCRIPT_DIR/../lib/mojodoc/packages/cli/dist/index.js" "$@"
+      WRAPPER
+    - chmod +x $PREFIX/bin/mojodoc
+
+requirements:
+  build:
+    - nodejs >=20
+    - pnpm >=8
+  host:
+    - nodejs >=20
+    - pnpm >=8
+  run:
+    - nodejs >=20
+
+about:
+  homepage: https://github.com/ehsanmok/mojodoc
+  license: MIT
+  summary: World-class API documentation generator for Mojo
+  description: |
+    mojodoc generates beautiful API documentation for Mojo libraries.
+    Features include:
+    - Modern dark-mode-first "Inferno" theme
+    - Full-text search with Cmd+K / Ctrl+K
+    - Public API extraction from __init__.mojo
+    - Source links to GitHub/GitLab
+    - Zero config - reads metadata from pixi.toml

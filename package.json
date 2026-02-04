@@ -1,0 +1,32 @@
+{
+  "name": "mojodoc-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "World-class API documentation generator for Mojo",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "test": "vitest run",
+    "lint": "eslint \"packages/*/src/**/*.ts\"",
+    "lint:fix": "eslint \"packages/*/src/**/*.ts\" --fix",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "rm -rf packages/*/dist node_modules/.cache",
+    "format": "prettier --write \"packages/*/src/**/*.ts\"",
+    "format:check": "prettier --check \"packages/*/src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.3.3",
+    "vite-tsconfig-paths": "^6.0.5",
+    "vitest": "^1.2.0"
+  },
+  "packageManager": "pnpm@8.14.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

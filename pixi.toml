@@ -1,0 +1,54 @@
+[workspace]
+authors = ["ehsanmok <ehsanmok@users.noreply.github.com>"]
+channels = ["https://conda.modular.com/max-nightly", "conda-forge"]
+name = "mojodoc"
+platforms = ["linux-64", "osx-arm64"]
+version = "0.0.1"
+preview = ["pixi-build"]
+
+[package]
+name = "mojodoc"
+version = "0.0.1"
+
+[package.build]
+backend = { name = "pixi-build-rattler-build", version = "*" }
+
+[dependencies]
+nodejs = ">=20"
+pnpm = ">=8"
+
+[feature.dev.dependencies]
+mojo = "<1.0"
+pre-commit = ">=4.2.0,<5"
+
+[environments]
+default = { features = ["dev"] }
+
+[tasks]
+# Setup - install npm dependencies
+install = "pnpm install"
+
+# Pre-commit and formatting
+install-pre-commit = "pre-commit install"
+format = { cmd = "pnpm run format", depends-on = ["install-pre-commit"] }
+format-check = "pnpm run format:check"
+lint = "pnpm run lint"
+lint-fix = "pnpm run lint:fix"
+
+# Development tasks
+dev = "pnpm run dev"
+build = "pnpm run build"
+tests = "pnpm test"
+
+# Check all (format + lint + tests)
+check = { cmd = "pnpm run format:check && pnpm run lint && pnpm test" }
+
+# Main CLI - usage: pixi run mojodoc [args...]
+# Examples:
+#   pixi run mojodoc ../mojson/mojson --open
+#   pixi run mojodoc ../mojson/mojson --out-dir ./docs
+#   pixi run mojodoc serve ./target/doc --port 8080
+mojodoc = "node ./packages/cli/dist/index.js"
+
+# Shortcut to generate docs for current directory
+docs = "node ./packages/cli/dist/index.js . --open"

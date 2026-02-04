@@ -1,0 +1,38 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# Cursor
+.cursor/
+.agents/
+
+# Lock files
+*.lock
+pnpm-lock.yaml
+
+# Node.js
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Build output
+target/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Lock files from other package managers
+package-lock.json
+yarn.lock
+
+# Test coverage
+coverage/

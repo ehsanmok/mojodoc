@@ -1,0 +1,47 @@
+{
+  "name": "mojodoc",
+  "version": "0.1.0",
+  "description": "World-class API documentation generator for Mojo",
+  "type": "module",
+  "bin": {
+    "mojodoc": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mojodoc/parser": "workspace:*",
+    "@mojodoc/transform": "workspace:*",
+    "@mojodoc/renderer": "workspace:*",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "open": "^10.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "@types/node": "^20.11.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mojo",
+    "documentation",
+    "api-docs",
+    "mojodoc"
+  ],
+  "author": "ehsanmok",
+  "license": "MIT"
+}

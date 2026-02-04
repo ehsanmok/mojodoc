@@ -1,0 +1,120 @@
+{
+  "version": "0.26.2.0.dev2026020305",
+  "decl": {
+    "kind": "package",
+    "name": "testlib",
+    "summary": "Test library for exploring Mojo documentation generation.",
+    "description": "This is the main package docstring.",
+    "modules": [
+      {
+        "kind": "module",
+        "name": "__init__",
+        "summary": "Test library for exploring Mojo documentation generation.",
+        "description": "This is the main package docstring.",
+        "functions": [],
+        "structs": [],
+        "traits": [],
+        "aliases": []
+      },
+      {
+        "kind": "module",
+        "name": "core",
+        "summary": "Core functions for the test library.",
+        "description": "This module contains basic utility functions.",
+        "functions": [
+          {
+            "kind": "function",
+            "name": "greet",
+            "overloads": [
+              {
+                "kind": "function",
+                "name": "greet",
+                "signature": "greet(name: String) -> String",
+                "summary": "Return a greeting message.",
+                "description": "Creates a personalized greeting.",
+                "args": [
+                  {
+                    "kind": "argument",
+                    "name": "name",
+                    "type": "String",
+                    "description": "The name of the person to greet.",
+                    "convention": "read",
+                    "passingKind": "pos_or_kw",
+                    "path": "/std/collections/string/string/String"
+                  }
+                ],
+                "parameters": [],
+                "returns": {
+                  "type": "String",
+                  "doc": "A greeting string.",
+                  "path": "/std/collections/string/string/String"
+                },
+                "raises": false,
+                "raisesDoc": "",
+                "async": false,
+                "isStatic": false,
+                "isDef": false,
+                "isImplicitConversion": false,
+                "hasDefaultImplementation": false,
+                "deprecated": "",
+                "constraints": ""
+              }
+            ]
+          },
+          {
+            "kind": "function",
+            "name": "add",
+            "overloads": [
+              {
+                "kind": "function",
+                "name": "add",
+                "signature": "add(a: Int, b: Int) -> Int",
+                "summary": "Add two integers together.",
+                "description": "",
+                "args": [
+                  {
+                    "kind": "argument",
+                    "name": "a",
+                    "type": "Int",
+                    "description": "The first integer operand.",
+                    "convention": "read",
+                    "passingKind": "pos_or_kw",
+                    "path": "/std/builtin/int/Int"
+                  },
+                  {
+                    "kind": "argument",
+                    "name": "b",
+                    "type": "Int",
+                    "description": "The second integer operand.",
+                    "convention": "read",
+                    "passingKind": "pos_or_kw",
+                    "path": "/std/builtin/int/Int"
+                  }
+                ],
+                "parameters": [],
+                "returns": {
+                  "type": "Int",
+                  "doc": "The sum of a and b.",
+                  "path": "/std/builtin/int/Int"
+                },
+                "raises": false,
+                "raisesDoc": "",
+                "async": false,
+                "isStatic": false,
+                "isDef": false,
+                "isImplicitConversion": false,
+                "hasDefaultImplementation": false,
+                "deprecated": "",
+                "constraints": ""
+              }
+            ]
+          }
+        ],
+        "structs": [],
+        "traits": [],
+        "aliases": []
+      }
+    ],
+    "packages": []
+  }
+}

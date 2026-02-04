@@ -1,0 +1,30 @@
+{
+  "name": "@mojodoc/transform",
+  "version": "0.1.0",
+  "description": "Transform mojo doc JSON into renderable structures",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mojodoc/parser": "workspace:*",
+    "marked": "^11.1.1",
+    "marked-highlight": "^2.1.0",
+    "highlight.js": "^11.9.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "@types/node": "^20.11.0"
+  }
+}
