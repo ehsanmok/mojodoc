@@ -2,6 +2,9 @@
 
 API documentation generator for Mojo🔥.
 
+> [!WARNING]
+> **Under development** — APIs may change.
+
 ## Features
 
 - **Beautiful Output** — Modern, dark-mode-first design with the "Inferno" theme
@@ -43,6 +46,18 @@ pixi run mojodoc ./mypackage --out-dir ./docs
 
 # Use a different port (default: 3000)
 pixi run mojodoc ./mypackage --open --port 8080
+```
+
+> mojodoc expects a **pixi-based project** with `pixi.toml`. The path should point to your Mojo **package directory** (containing `__init__.mojo`):
+
+```
+myproject/
+├── pixi.toml         ← required (used for name, version)
+└── mypackage/        ← point to this directory
+    ├── __init__.mojo
+    ├── core.mojo
+    └── utils/
+        └── __init__.mojo
 ```
 
 Source links are **auto-detected** from your git remote — no configuration needed.
