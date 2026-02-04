@@ -131,6 +131,34 @@ export const styles = `
   --glass-border: rgba(0, 0, 0, 0.06);
 
   --gradient-glow: radial-gradient(ellipse at center, rgba(255, 107, 53, 0.08) 0%, transparent 70%);
+
+  /* Code block colors for light mode */
+  --code-bg: #f6f8fa;
+  --code-text: #24292f;
+  --code-border: rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode code block overrides */
+[data-theme="light"] .signature-card {
+  background: var(--code-bg);
+  border-color: var(--code-border);
+}
+
+[data-theme="light"] .signature-card::before {
+  opacity: 0;
+}
+
+[data-theme="light"] .signature {
+  color: var(--code-text);
+}
+
+[data-theme="light"] .item-description pre {
+  background: var(--code-bg);
+  border-color: var(--code-border);
+}
+
+[data-theme="light"] .item-description pre code {
+  color: var(--code-text);
 }
 
 /* ============================================================================
