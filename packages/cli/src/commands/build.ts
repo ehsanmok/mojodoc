@@ -97,6 +97,7 @@ export interface BuildOptions {
   verbose?: boolean;
   port?: number;
   repository?: string;
+  baseUrl?: string;
 }
 
 export async function build(options: BuildOptions): Promise<void> {
@@ -162,7 +163,7 @@ export async function build(options: BuildOptions): Promise<void> {
       name: config.package.name,
       version: config.package.version,
       description: config.site.description,
-      baseUrl: config.site.baseUrl,
+      baseUrl: options.baseUrl || config.site.baseUrl,
       repository: options.repository || config.site.repository,
       editLink: config.site.editLink,
       initFileContent,

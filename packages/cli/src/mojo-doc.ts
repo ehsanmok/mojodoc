@@ -93,15 +93,39 @@ export async function runMojoDoc(options: MojoDocOptions): Promise<MojoDocResult
           // We got JSON output, stderr contains warnings
           resolve({
             json: stdout,
-            warnings: stderr.split('\\n').filter((line) => line.includes('warning:')),
+            warnings: stderr.split('\n').filter((line) => line.includes('warning:')),
           });
         } else {
-          reject(new Error(`mojo doc failed with exit code ${code}:\\n${stderr}`));
+          // Check if stderr contains compilation errors
+          const hasCompilationErrors = stderr.includes('error:') && !stderr.includes('mojo doc');
+          let errorMessage = `mojo doc failed with exit code ${code}`;
+
+          if (hasCompilationErrors) {
+            errorMessage +=
+              '\n\nThe Mojo code has compilation errors that must be fixed before generating docs.';
+            errorMessage += '\nmojodoc requires the code to compile successfully with `mojo doc`.';
+            errorMessage += '\n\nErrors found:';
+
+            // Extract just the error lines for a cleaner message
+            const errorLines = stderr
+              .split('\n')
+              .filter((line) => line.includes('error:'))
+              .slice(0, 5); // Show first 5 errors
+            errorMessage += '\n' + errorLines.join('\n');
+
+            if (stderr.split('\n').filter((line) => line.includes('error:')).length > 5) {
+              errorMessage += '\n... and more errors';
+            }
+          } else {
+            errorMessage += ':\n' + stderr;
+          }
+
+          reject(new Error(errorMessage));
         }
       } else {
         resolve({
           json: stdout,
-          warnings: stderr.split('\\n').filter((line) => line.includes('warning:')),
+          warnings: stderr.split('\n').filter((line) => line.includes('warning:')),
         });
       }
     });

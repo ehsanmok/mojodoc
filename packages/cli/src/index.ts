@@ -27,6 +27,7 @@ program
     'Repository URL for source links (e.g., https://github.com/user/repo)'
   )
   .option('-c, --config <path>', 'Config file path')
+  .option('-b, --base-url <url>', 'Base URL for assets and links (e.g., /pprint/ for GitHub Pages)')
   .option('--diagnose', 'Show missing docstring warnings', true)
   .option('-v, --verbose', 'Verbose output')
   .action(async (path, options) => {
