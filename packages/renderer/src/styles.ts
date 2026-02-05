@@ -1092,6 +1092,266 @@ html:not([data-theme]) .sun-icon {
 }
 
 /* ============================================================================
+   Markdown Content Rendering (tables, blockquotes, lists, etc.)
+   Applies to docstring content in packages, modules, and items.
+   ============================================================================ */
+
+.package-description table,
+.item-description table,
+.module-page article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-5) 0;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.package-description thead,
+.item-description thead,
+.module-page article thead {
+  background: var(--bg-raised);
+}
+
+.package-description th,
+.item-description th,
+.module-page article th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-default);
+}
+
+.package-description td,
+.item-description td,
+.module-page article td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.package-description tr:last-child td,
+.item-description tr:last-child td,
+.module-page article tr:last-child td {
+  border-bottom: none;
+}
+
+.package-description tbody tr:hover,
+.item-description tbody tr:hover,
+.module-page article tbody tr:hover {
+  background: var(--bg-elevated);
+}
+
+/* Blockquotes (Note:, Warning:, general) */
+.package-description blockquote,
+.item-description blockquote,
+.module-page article blockquote {
+  margin: var(--space-5) 0;
+  padding: var(--space-4) var(--space-5);
+  border-left: 4px solid var(--ember);
+  background: var(--bg-raised);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  color: var(--text-secondary);
+}
+
+.package-description blockquote p,
+.item-description blockquote p,
+.module-page article blockquote p {
+  margin-bottom: 0;
+}
+
+/* Lists */
+.package-description ul,
+.item-description ul,
+.module-page article ul {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-6);
+  list-style-type: disc;
+}
+
+.package-description ol,
+.item-description ol,
+.module-page article ol {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-6);
+  list-style-type: decimal;
+}
+
+.package-description li,
+.item-description li,
+.module-page article li {
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.package-description li > ul,
+.item-description li > ul,
+.module-page article li > ul,
+.package-description li > ol,
+.item-description li > ol,
+.module-page article li > ol {
+  margin-top: var(--space-2);
+  margin-bottom: 0;
+}
+
+/* Headings in docstring content - clean markdown style */
+.package-description h1,
+.package-description h2,
+.package-description h3,
+.package-description h4,
+.package-description h5,
+.package-description h6,
+.item-description h1,
+.item-description h2,
+.item-description h3,
+.item-description h4,
+.item-description h5,
+.item-description h6,
+.module-page article h1,
+.module-page article h2,
+.module-page article h3,
+.module-page article h4,
+.module-page article h5,
+.module-page article h6 {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  line-height: 1.4;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.package-description h1,
+.item-description h1,
+.module-page article h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.package-description h2,
+.item-description h2,
+.module-page article h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.package-description h3,
+.item-description h3,
+.module-page article h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.package-description h4,
+.item-description h4,
+.module-page article h4 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.package-description h5,
+.item-description h5,
+.module-page article h5 {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.package-description h6,
+.item-description h6,
+.module-page article h6 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Paragraphs in docstring content */
+.package-description p,
+.module-page article p {
+  margin-bottom: var(--space-4);
+  line-height: 1.7;
+}
+
+/* Horizontal rules */
+.package-description hr,
+.item-description hr,
+.module-page article hr {
+  border: none;
+  border-top: 1px solid var(--border-default);
+  margin: var(--space-8) 0;
+}
+
+/* Strong / emphasis */
+.package-description strong,
+.item-description strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Links in docstrings */
+.package-description a,
+.item-description a {
+  color: var(--ember);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--duration-fast);
+}
+
+.package-description a:hover,
+.item-description a:hover {
+  border-bottom-color: var(--ember);
+}
+
+/* Light mode overrides for markdown content */
+[data-theme="light"] .package-description table,
+[data-theme="light"] .item-description table,
+[data-theme="light"] .module-page article table {
+  border-color: #d0d7de;
+}
+
+[data-theme="light"] .package-description thead,
+[data-theme="light"] .item-description thead,
+[data-theme="light"] .module-page article thead {
+  background: #f6f8fa;
+}
+
+[data-theme="light"] .package-description th,
+[data-theme="light"] .item-description th,
+[data-theme="light"] .module-page article th {
+  border-bottom-color: #d0d7de;
+  color: #1f2328;
+}
+
+[data-theme="light"] .package-description td,
+[data-theme="light"] .item-description td,
+[data-theme="light"] .module-page article td {
+  border-bottom-color: #d8dee4;
+  color: #1f2328;
+}
+
+[data-theme="light"] .package-description tbody tr:hover,
+[data-theme="light"] .item-description tbody tr:hover,
+[data-theme="light"] .module-page article tbody tr:hover {
+  background: #f6f8fa;
+}
+
+[data-theme="light"] .package-description blockquote,
+[data-theme="light"] .item-description blockquote,
+[data-theme="light"] .module-page article blockquote {
+  background: #f6f8fa;
+  border-left-color: #d0d7de;
+  color: #1f2328;
+}
+
+/* ============================================================================
    Parameters, Returns, Raises
    ============================================================================ */
 
