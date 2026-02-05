@@ -161,6 +161,102 @@ export const styles = `
   color: var(--code-text);
 }
 
+/* Light mode: ALL code blocks - high specificity overrides */
+[data-theme="light"] .package-description pre,
+[data-theme="light"] .module-page pre,
+[data-theme="light"] article pre {
+  background: #f6f8fa !important;
+  border: 1px solid #d0d7de !important;
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+[data-theme="light"] .package-description pre code,
+[data-theme="light"] .module-page pre code,
+[data-theme="light"] article pre code {
+  color: #1f2328 !important;
+  background: transparent !important;
+}
+
+[data-theme="light"] .package-description code,
+[data-theme="light"] .module-page code,
+[data-theme="light"] article code {
+  background: #f6f8fa;
+  color: #1f2328;
+  border-color: #d0d7de;
+}
+
+/* Light mode: inline code globally */
+[data-theme="light"] code {
+  background: #eff1f3;
+  color: #1f2328;
+  border-color: #d0d7de;
+}
+
+/* Light mode: syntax highlighting (GitHub-inspired, high contrast) */
+[data-theme="light"] .hljs {
+  color: #1f2328 !important;
+  background: transparent !important;
+}
+
+[data-theme="light"] .hljs-keyword {
+  color: #cf222e !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .hljs-string {
+  color: #0a3069 !important;
+}
+
+[data-theme="light"] .hljs-number {
+  color: #0550ae !important;
+}
+
+[data-theme="light"] .hljs-comment {
+  color: #57606a !important;
+  font-style: italic;
+}
+
+[data-theme="light"] .hljs-function {
+  color: #8250df !important;
+}
+
+[data-theme="light"] .hljs-class {
+  color: #953800 !important;
+}
+
+[data-theme="light"] .hljs-variable {
+  color: #1f2328 !important;
+}
+
+[data-theme="light"] .hljs-literal {
+  color: #0550ae !important;
+}
+
+[data-theme="light"] .hljs-built_in {
+  color: #0550ae !important;
+}
+
+[data-theme="light"] .hljs-type {
+  color: #953800 !important;
+}
+
+[data-theme="light"] .hljs-attr {
+  color: #0550ae !important;
+}
+
+[data-theme="light"] .hljs-meta {
+  color: #cf222e !important;
+}
+
+[data-theme="light"] .hljs-title {
+  color: #8250df !important;
+}
+
+[data-theme="light"] .hljs-params {
+  color: #1f2328 !important;
+}
+
 /* ============================================================================
    Global Reset & Base
    ============================================================================ */
