@@ -402,8 +402,8 @@ export const scripts = `
   // Intersection Observer for Fade-In Animations
   // ============================================================================
 
-  // Only apply fade-in if not already scrolled down
-  if (window.scrollY < 100) {
+  // Only apply fade-in if not already scrolled down and no hash anchor target
+  if (window.scrollY < 100 && !window.location.hash) {
     const observerOptions = {
       root: null,
       rootMargin: '0px 0px -30px 0px',

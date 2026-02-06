@@ -110,7 +110,186 @@
             ]
           }
         ],
-        "structs": [],
+        "structs": [
+          {
+            "kind": "struct",
+            "name": "Config",
+            "signature": "struct Config",
+            "summary": "A configuration container.",
+            "description": "Holds name-value configuration pairs.",
+            "parameters": [],
+            "fields": [
+              {
+                "kind": "field",
+                "name": "name",
+                "type": "String",
+                "summary": "Configuration name.",
+                "description": "",
+                "path": "/std/collections/string/string/String"
+              },
+              {
+                "kind": "field",
+                "name": "value",
+                "type": "Int",
+                "summary": "Configuration value.",
+                "description": "",
+                "path": "/std/builtin/int/Int"
+              }
+            ],
+            "functions": [
+              {
+                "kind": "function",
+                "name": "to_string",
+                "overloads": [
+                  {
+                    "kind": "function",
+                    "name": "to_string",
+                    "signature": "to_string(self) -> String",
+                    "summary": "Convert to string representation.",
+                    "description": "",
+                    "args": [
+                      {
+                        "kind": "argument",
+                        "name": "self",
+                        "type": "Config",
+                        "description": "",
+                        "convention": "read",
+                        "passingKind": "pos_or_kw",
+                        "path": "/testlib/core/#Config"
+                      }
+                    ],
+                    "parameters": [],
+                    "returns": {
+                      "type": "String",
+                      "doc": "String representation.",
+                      "path": "/std/collections/string/string/String"
+                    },
+                    "raises": false,
+                    "raisesDoc": "",
+                    "async": false,
+                    "isStatic": false,
+                    "isDef": false,
+                    "isImplicitConversion": false,
+                    "hasDefaultImplementation": false,
+                    "deprecated": "",
+                    "constraints": ""
+                  }
+                ]
+              }
+            ],
+            "deprecated": "",
+            "path": "/testlib/core/#Config"
+          }
+        ],
+        "traits": [],
+        "aliases": []
+      },
+      {
+        "kind": "module",
+        "name": "types",
+        "summary": "Type definitions for the test library.",
+        "description": "Contains types that reference other local types.",
+        "functions": [
+          {
+            "kind": "function",
+            "name": "process_items",
+            "overloads": [
+              {
+                "kind": "function",
+                "name": "process_items",
+                "signature": "process_items(items: List[Item]) -> Result",
+                "summary": "Process a list of items.",
+                "description": "Takes a list of items and returns a result.",
+                "args": [
+                  {
+                    "kind": "argument",
+                    "name": "items",
+                    "type": "List[Item]",
+                    "description": "The items to process.",
+                    "convention": "read",
+                    "passingKind": "pos_or_kw",
+                    "path": "/std/collections/list/List"
+                  }
+                ],
+                "parameters": [],
+                "returns": {
+                  "type": "Result",
+                  "doc": "The processing result.",
+                  "path": "/testlib/types/#Result"
+                },
+                "raises": true,
+                "raisesDoc": "If items list is empty.",
+                "async": false,
+                "isStatic": false,
+                "isDef": false,
+                "isImplicitConversion": false,
+                "hasDefaultImplementation": false,
+                "deprecated": "",
+                "constraints": ""
+              }
+            ]
+          }
+        ],
+        "structs": [
+          {
+            "kind": "struct",
+            "name": "Item",
+            "signature": "struct Item",
+            "summary": "A simple item.",
+            "description": "",
+            "parameters": [],
+            "fields": [
+              {
+                "kind": "field",
+                "name": "name",
+                "type": "String",
+                "summary": "Item name.",
+                "description": "",
+                "path": "/std/collections/string/string/String"
+              },
+              {
+                "kind": "field",
+                "name": "config",
+                "type": "Config",
+                "summary": "Item configuration.",
+                "description": "",
+                "path": "/testlib/core/#Config"
+              }
+            ],
+            "functions": [],
+            "deprecated": "",
+            "path": "/testlib/types/#Item"
+          },
+          {
+            "kind": "struct",
+            "name": "Result",
+            "signature": "struct Result",
+            "summary": "A processing result.",
+            "description": "",
+            "parameters": [],
+            "fields": [
+              {
+                "kind": "field",
+                "name": "count",
+                "type": "Int",
+                "summary": "Number of items processed.",
+                "description": "",
+                "path": "/std/builtin/int/Int"
+              },
+              {
+                "kind": "field",
+                "name": "ok",
+                "type": "Bool",
+                "summary": "Whether processing succeeded.",
+                "description": "",
+                "path": "/std/builtin/bool/Bool"
+              }
+            ],
+            "functions": [],
+            "deprecated": "",
+            "path": "/testlib/types/#Result"
+          }
+        ],
         "traits": [],
         "aliases": []
       }

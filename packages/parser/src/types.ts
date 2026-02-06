@@ -83,11 +83,18 @@ export interface TypeParameterDecl {
   type: string;
   description: string;
   passingKind: string;
+  path?: string;
   traits: TraitConstraint[];
 }
 
 export interface TraitConstraint {
   type: string;
+  path?: string;
+}
+
+export interface ParentTrait {
+  name: string;
+  path: string;
 }
 
 export interface ReturnDecl {
@@ -107,6 +114,7 @@ export interface StructDecl {
   summary: string;
   description: string;
   parameters: TypeParameterDecl[];
+  parentTraits?: ParentTrait[];
   fields: FieldDecl[];
   functions: FunctionDecl[];
   deprecated: string;
@@ -134,7 +142,7 @@ export interface TraitDecl {
   description: string;
   parameters: TypeParameterDecl[];
   functions: FunctionDecl[];
-  parentTraits: string[];
+  parentTraits: ParentTrait[];
   deprecated: string;
   path: string;
 }

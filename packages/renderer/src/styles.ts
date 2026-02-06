@@ -152,6 +152,13 @@ export const styles = `
   color: var(--code-text);
 }
 
+[data-theme="light"] a.type-link {
+  border-bottom-color: #0b7261;
+}
+[data-theme="light"] a.type-link:hover {
+  color: #0b7261;
+}
+
 [data-theme="light"] .item-description pre {
   background: var(--code-bg);
   border-color: var(--code-border);
@@ -908,6 +915,7 @@ html:not([data-theme]) .sun-icon {
   padding: var(--space-8);
   transition: all var(--duration-normal) var(--ease-out-expo);
   overflow: hidden;
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
 }
 
 .doc-item::before {
@@ -1049,6 +1057,55 @@ html:not([data-theme]) .sun-icon {
 .sig-type { color: #4ec9b0; }
 .sig-param { color: #9cdcfe; }
 .sig-punct { color: #808080; }
+
+/* Type cross-reference links */
+a.type-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted #4ec9b0;
+  transition: border-color 0.15s, color 0.15s;
+}
+a.type-link:hover {
+  color: #4ec9b0;
+  border-bottom-style: solid;
+}
+a.type-link .sig-type {
+  color: inherit;
+}
+
+/* Type links inside signature cards - subtle underline on hover only */
+.signature a.type-link {
+  border-bottom: none;
+}
+.signature a.type-link:hover {
+  border-bottom: 1px dotted currentColor;
+}
+.signature a.type-link:hover .sig-type {
+  color: #5ed9c0;
+}
+
+/* Type links in param/return/field type displays */
+.param-type a.type-link,
+.return-type a.type-link,
+.field-type a.type-link {
+  border-bottom: 1px dotted #4ec9b0;
+}
+.param-type a.type-link:hover,
+.return-type a.type-link:hover,
+.field-type a.type-link:hover {
+  border-bottom-style: solid;
+}
+
+/* External link indicator for stdlib types */
+a.type-link[href^="https://"] .sig-type::after {
+  content: '\\2009\\2197'; /* thin space + arrow */
+  font-size: 0.7em;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+a.type-link[href^="https://"]:hover .sig-type::after {
+  opacity: 0.6;
+}
 
 .item-summary {
   font-size: 1.05rem;

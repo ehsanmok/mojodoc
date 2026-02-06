@@ -49,6 +49,110 @@ describe('transform', () => {
   });
 });
 
+describe('type cross-referencing', () => {
+  it('links stdlib types in signatures', () => {
+    const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
+    const parsed = parseJson(json);
+    const site = transform(parsed, { name: 'testlib' });
+
+    const coreModule = site.allModules.find(m => m.name === 'core');
+    const greetFn = coreModule?.functions.find(f => f.name === 'greet');
+    const sigHtml = greetFn?.overloads[0].signatureHtml || '';
+
+    // String type in signature should be linked to Mojo stdlib docs
+    expect(sigHtml).toContain('type-link');
+    expect(sigHtml).toContain('docs.modular.com/mojo/stdlib');
+  });
+
+  it('links stdlib types in arg types', () => {
+    const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
+    const parsed = parseJson(json);
+    const site = transform(parsed, { name: 'testlib' });
+
+    const coreModule = site.allModules.find(m => m.name === 'core');
+    const greetFn = coreModule?.functions.find(f => f.name === 'greet');
+    const argHtml = greetFn?.overloads[0].args[0].typeHtml || '';
+
+    // Arg type 'String' should link to stdlib
+    expect(argHtml).toContain('type-link');
+    expect(argHtml).toContain('docs.modular.com/mojo/stdlib');
+  });
+
+  it('links local types in signatures', () => {
+    const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
+    const parsed = parseJson(json);
+    const site = transform(parsed, { name: 'testlib' });
+
+    const typesModule = site.allModules.find(m => m.name === 'types');
+    const processFn = typesModule?.functions.find(f => f.name === 'process_items');
+    const sigHtml = processFn?.overloads[0].signatureHtml || '';
+
+    // Both 'Item' and 'Result' should be linked as local types
+    expect(sigHtml).toContain('testlib/types/index.html#Item');
+    expect(sigHtml).toContain('testlib/types/index.html#Result');
+  });
+
+  it('links local types in return types', () => {
+    const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
+    const parsed = parseJson(json);
+    const site = transform(parsed, { name: 'testlib' });
+
+    const typesModule = site.allModules.find(m => m.name === 'types');
+    const processFn = typesModule?.functions.find(f => f.name === 'process_items');
+    const returnHtml = processFn?.overloads[0].returns?.typeHtml || '';
+
+    // Return type 'Result' should link to local type
+    expect(returnHtml).toContain('type-link');
+    expect(returnHtml).toContain('testlib/types/index.html');
+  });
+
+  it('links cross-module local types in field types', () => {
+    const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
+    const parsed = parseJson(json);
+    const site = transform(parsed, { name: 'testlib' });
+
+    const typesModule = site.allModules.find(m => m.name === 'types');
+    const itemStruct = typesModule?.structs.find(s => s.name === 'Item');
+    const configField = itemStruct?.fields.find(f => f.name === 'config');
+    const fieldHtml = configField?.typeHtml || '';
+
+    // Field type 'Config' should link to core module's Config struct
+    expect(fieldHtml).toContain('type-link');
+    expect(fieldHtml).toContain('testlib/core/index.html#Config');
+  });
+
+  it('builds type registry with all local types', () => {
+    const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
+    const parsed = parseJson(json);
+    const site = transform(parsed, { name: 'testlib' });
+
+    // The types module should have structs with proper signature links
+    const typesModule = site.allModules.find(m => m.name === 'types');
+    expect(typesModule).toBeDefined();
+    expect(typesModule?.structs).toHaveLength(2);
+
+    // Config from core module should be discoverable as a type link
+    // when referenced in the types module
+    const itemStruct = typesModule?.structs.find(s => s.name === 'Item');
+    expect(itemStruct).toBeDefined();
+  });
+
+  it('links individual type components in complex types', () => {
+    const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
+    const parsed = parseJson(json);
+    const site = transform(parsed, { name: 'testlib' });
+
+    const typesModule = site.allModules.find(m => m.name === 'types');
+    const processFn = typesModule?.functions.find(f => f.name === 'process_items');
+    const sigHtml = processFn?.overloads[0].signatureHtml || '';
+
+    // 'List' should be linked (stdlib) and 'Item' should be linked (local)
+    // They should be separate links, not one big link
+    expect(sigHtml).toContain('docs.modular.com');  // List -> stdlib
+    expect(sigHtml).toContain('testlib/types/index.html#Item');  // Item -> local
+  });
+});
+
 describe('buildNavTree', () => {
   it('builds navigation tree', () => {
     const json = readFileSync(resolve(FIXTURES_DIR, 'sample.json'), 'utf-8');
