@@ -159,6 +159,13 @@ export const styles = `
   color: #0b7261;
 }
 
+/* Light mode: signature syntax highlighting (readable on light backgrounds) */
+[data-theme="light"] .sig-keyword { color: #af00db; }
+[data-theme="light"] .sig-name { color: #795e26; }
+[data-theme="light"] .sig-type { color: #267f99; }
+[data-theme="light"] .sig-param { color: #001080; }
+[data-theme="light"] .sig-punct { color: #6e7781; }
+
 [data-theme="light"] .item-description pre {
   background: var(--code-bg);
   border-color: var(--code-border);
