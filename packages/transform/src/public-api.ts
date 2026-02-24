@@ -39,7 +39,9 @@ export function parseInitFile(content: string): ParsedImport[] {
     }
 
     // Parse: from .module import item1, item2, ...
-    const singleLineMatch = trimmed.match(/^from\s+\.(\w+)\s+import\s+(.+)$/);
+    // Supports both flat modules (from .parser import ...) and
+    // subpackage modules (from .net.address import ...).
+    const singleLineMatch = trimmed.match(/^from\s+\.(\w+(?:\.\w+)*)\s+import\s+(.+)$/);
     if (singleLineMatch) {
       const [, module, itemsStr] = singleLineMatch;
       const items = itemsStr
@@ -53,12 +55,15 @@ export function parseInitFile(content: string): ParsedImport[] {
           items,
           comment: currentComment || undefined,
         });
+        // Only skip multiline check when we already captured real items.
+        // When itemsStr is just "(" (multiline opener), fall through below.
+        continue;
       }
-      continue;
     }
 
     // Parse multiline: from .module import (
-    const multiLineStart = trimmed.match(/^from\s+\.(\w+)\s+import\s+\(\s*$/);
+    // Supports dotted paths (from .net.address import (...)).
+    const multiLineStart = trimmed.match(/^from\s+\.(\w+(?:\.\w+)*)\s+import\s+\(\s*$/);
     if (multiLineStart) {
       const module = multiLineStart[1];
       const items: string[] = [];
@@ -97,14 +102,29 @@ export function parseInitFile(content: string): ParsedImport[] {
 
 /**
  * Build public API sections from parsed imports and module data.
+ *
+ * Handles both flat module re-exports (`from .parser import loads`) and
+ * subpackage module re-exports (`from .net.address import IpAddr`).
+ * The module map is keyed by the relative dot-path from the package root so
+ * that both depth-1 ("parser") and depth-2+ ("net.address") paths resolve.
  */
 export function buildPublicApi(
   imports: ParsedImport[],
   modules: Module[],
-  _packagePath: string
+  packagePath: string
 ): PublicApiSection[] {
   const sections: PublicApiSection[] = [];
-  const moduleMap = new Map(modules.map((m) => [m.name, m]));
+
+  // Build the module map keyed by the relative dot-path from the package root.
+  // e.g. fullPath "flare.net.address" with packagePath "flare" → key "net.address"
+  //      fullPath "mojson.parser"     with packagePath "mojson" → key "parser"
+  const prefix = packagePath + '.';
+  const moduleMap = new Map(
+    modules.map((m) => {
+      const relPath = m.fullPath.startsWith(prefix) ? m.fullPath.slice(prefix.length) : m.fullPath;
+      return [relPath, m];
+    })
+  );
 
   // Group imports by comment (section)
   const sectionMap = new Map<string, PublicApiItem[]>();

@@ -112,10 +112,12 @@ export function transform(doc: MojoDocOutput, options: TransformOptions = {}): D
     allModules = [mod];
   }
 
-  // Extract public API from __init__.mojo if provided
+  // Extract public API from __init__.mojo if provided.
+  // Use allModules (not rootPackage.modules) so that symbols defined in
+  // subpackage modules (e.g. flare.net.address.IpAddr) are resolved.
   if (options.initFileContent) {
     const parsedImports = parseInitFile(options.initFileContent);
-    rootPackage.publicApi = buildPublicApi(parsedImports, rootPackage.modules, rootPackage.path);
+    rootPackage.publicApi = buildPublicApi(parsedImports, allModules, rootPackage.path);
 
     // Extract and render docstring as package description
     const docstring = extractDocstring(options.initFileContent);
