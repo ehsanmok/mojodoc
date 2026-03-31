@@ -24,18 +24,15 @@ build:
     # Create bin directory
     - mkdir -p $PREFIX/bin
     - mkdir -p $PREFIX/lib/mojodoc
-    # Copy built files
-    - cp -r packages $PREFIX/lib/mojodoc/
-    - cp package.json $PREFIX/lib/mojodoc/
-    - cp pnpm-workspace.yaml $PREFIX/lib/mojodoc/
-    # Install production dependencies in the lib folder
-    - cd $PREFIX/lib/mojodoc && pnpm install --prod --frozen-lockfile=false
+    # Deploy CLI package with all prod deps into a self-contained directory
+    # pnpm deploy resolves symlinks and produces a flat node_modules (no pnpm store symlinks)
+    - pnpm --filter mojodoc deploy --prod $PREFIX/lib/mojodoc
     # Create wrapper script
     - |
       cat > $PREFIX/bin/mojodoc << 'WRAPPER'
       #!/usr/bin/env bash
       SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-      exec node "$SCRIPT_DIR/../lib/mojodoc/packages/cli/dist/index.js" "$@"
+      exec node "$SCRIPT_DIR/../lib/mojodoc/dist/index.js" "$@"
       WRAPPER
     - chmod +x $PREFIX/bin/mojodoc
 
