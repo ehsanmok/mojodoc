@@ -23,9 +23,9 @@ build:
     - pnpm run build
     # Create bin directory
     - mkdir -p $PREFIX/bin
-    - mkdir -p $PREFIX/lib/mojodoc
     # Deploy CLI package with all prod deps into a self-contained directory
     # pnpm deploy resolves symlinks and produces a flat node_modules (no pnpm store symlinks)
+    # Note: deploy target must not exist yet (pnpm requires empty dir)
     - pnpm --filter mojodoc deploy --prod $PREFIX/lib/mojodoc
     # Create wrapper script
     - |
