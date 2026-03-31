@@ -403,20 +403,42 @@ function transformPackage(
 
   const subpackages = pkg.packages.map((sub) => transformPackage(sub, path, moduleFiles, linkCtx));
 
-  // Try to extract description from package's __init__.mojo
+  // Resolve description from multiple sources (in priority order):
+  // 1. mojo doc description field (if non-empty)
+  // 2. __init__.mojo triple-quote docstring scanned from disk
+  // 3. __init__ module's own description from mojo doc JSON
   let description = pkg.description || '';
-  let descriptionHtml = renderMarkdown(description);
+  let descriptionHtml = description ? renderMarkdown(description) : '';
 
-  // Look for __init__.mojo in the package
-  const initPath = parentPath
-    ? `${parentPath.split('.').slice(1).join('/')}/${pkg.name}/__init__.mojo`
-    : `${pkg.name}/__init__.mojo`;
-  const initContent = moduleFiles.get(initPath) || moduleFiles.get(`__init__.mojo`);
-  if (initContent && !description) {
-    const docstring = extractModuleDocstring(initContent);
-    if (docstring) {
-      description = docstring;
-      descriptionHtml = renderMarkdown(docstring);
+  if (!description) {
+    // Look for __init__.mojo on disk using several candidate paths
+    const candidatePaths = [
+      parentPath
+        ? `${parentPath.split('.').slice(1).join('/')}/${pkg.name}/__init__.mojo`
+        : `${pkg.name}/__init__.mojo`,
+      `__init__.mojo`,
+    ];
+    let initContent: string | undefined;
+    for (const p of candidatePaths) {
+      initContent = moduleFiles.get(p);
+      if (initContent) break;
+    }
+
+    if (initContent) {
+      const docstring = extractModuleDocstring(initContent);
+      if (docstring) {
+        description = docstring;
+        descriptionHtml = renderMarkdown(docstring);
+      }
+    }
+
+    // Fall back to the __init__ module's description from mojo doc JSON
+    if (!description) {
+      const initModule = pkg.modules.find((m) => m.name === '__init__');
+      if (initModule && initModule.description) {
+        description = initModule.description;
+        descriptionHtml = renderMarkdown(description);
+      }
     }
   }
 

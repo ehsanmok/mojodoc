@@ -1,6 +1,9 @@
 /**
  * HTML templates for the documentation site.
  * Using the "Inferno" design system - bold, modern, and uniquely Mojo.
+ *
+ * Layout philosophy: cargo doc UX (API-first, two-pass summary→detail)
+ * + Inferno visual identity (ember palette, ribbons, glass morphism).
  */
 
 import type {
@@ -10,13 +13,13 @@ import type {
   StructItem,
   TraitItem,
   AliasItem,
-  NavNode,
+  PublicApiItem,
 } from '@mojodoc/transform';
 
 /**
  * Generate the main layout HTML.
  */
-export function layoutTemplate(content: string, site: DocSite, currentPath: string): string {
+export function layoutTemplate(content: string, site: DocSite, _currentPath: string): string {
   return `<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -79,11 +82,9 @@ export function layoutTemplate(content: string, site: DocSite, currentPath: stri
     </header>
 
     <div class="main-container">
-      <!-- Sidebar -->
+      <!-- Sidebar: "On this page" kind anchors, populated by JS -->
       <aside class="sidebar" id="sidebar">
-        <nav class="nav-tree">
-          ${renderNavTree(site.navTree, currentPath, site.config.baseUrl)}
-        </nav>
+        <div class="sidebar-kinds" id="sidebar-kinds"></div>
       </aside>
 
       <!-- Main Content -->
@@ -119,55 +120,6 @@ export function layoutTemplate(content: string, site: DocSite, currentPath: stri
 }
 
 /**
- * Render navigation tree.
- */
-function renderNavTree(nodes: NavNode[], currentPath: string, baseUrl: string): string {
-  return nodes
-    .map((node) => {
-      const isActive = currentPath.startsWith(node.urlPath);
-      const hasChildren = node.children.length > 0;
-
-      return `
-      <div class="nav-node ${isActive ? 'active' : ''}">
-        <a href="${baseUrl}${node.urlPath}/index.html" class="nav-link ${node.type}">
-          <span class="nav-icon">${node.type === 'package' ? '📦' : '📄'}</span>
-          <span class="nav-name">${escapeHtml(node.name)}</span>
-          ${hasChildren ? '<span class="nav-arrow">▸</span>' : ''}
-        </a>
-        ${
-          hasChildren
-            ? `
-          <div class="nav-children">
-            ${renderNavTree(node.children, currentPath, baseUrl)}
-          </div>
-        `
-            : ''
-        }
-        ${
-          node.items && node.items.length > 0
-            ? `
-          <div class="nav-items">
-            ${node.items
-              .map(
-                (item) => `
-              <a href="${baseUrl}${node.urlPath}/index.html#${item.anchor}" class="nav-item ${item.kind}">
-                <span class="nav-item-badge">${kindBadge(item.kind)}</span>
-                <span class="nav-item-name">${escapeHtml(item.name)}</span>
-              </a>
-            `
-              )
-              .join('')}
-          </div>
-        `
-            : ''
-        }
-      </div>
-    `;
-    })
-    .join('');
-}
-
-/**
  * Get badge text for item kind.
  */
 function kindBadge(kind: string): string {
@@ -175,11 +127,11 @@ function kindBadge(kind: string): string {
     case 'function':
       return 'fn';
     case 'struct':
-      return 'st';
+      return 'struct';
     case 'trait':
-      return 'tr';
+      return 'trait';
     case 'alias':
-      return 'al';
+      return 'const';
     case 'field':
       return 'fd';
     case 'method':
@@ -190,24 +142,113 @@ function kindBadge(kind: string): string {
 }
 
 /**
+ * Render a cargo-doc style overview table for a list of items.
+ * Each row: kind-badge + name (jump-link) | one-line summary.
+ */
+function overviewTable(
+  items: Array<{ name: string; anchor: string; summary: string; kind: string }>
+): string {
+  if (items.length === 0) return '';
+  return `
+    <table class="overview-table">
+      <tbody>
+        ${items
+          .map(
+            (item) => `
+          <tr>
+            <td class="ov-name">
+              <span class="kind-badge ${item.kind}">${kindBadge(item.kind)}</span>
+              <a href="#${item.anchor}" class="ov-link">${escapeHtml(item.name)}</a>
+            </td>
+            <td class="ov-summary">${item.summary ? escapeHtml(item.summary) : ''}</td>
+          </tr>
+        `
+          )
+          .join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+/**
+ * Render a cargo-doc style overview table for public API re-exports.
+ * Each row links to the item's detail page + anchor.
+ */
+function reExportTable(items: PublicApiItem[], baseUrl: string): string {
+  if (items.length === 0) return '';
+  return `
+    <table class="overview-table re-export-table">
+      <tbody>
+        ${items
+          .map(
+            (item) => `
+          <tr>
+            <td class="ov-name">
+              <span class="kind-badge ${item.kind}">${kindBadge(item.kind)}</span>
+              <a href="${baseUrl}${item.urlPath}/index.html#${item.anchor}" class="ov-link">${escapeHtml(item.name)}</a>
+            </td>
+            <td class="ov-summary">${item.summary ? escapeHtml(item.summary) : ''}</td>
+          </tr>
+        `
+          )
+          .join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+/**
  * Generate module page HTML.
+ * Two-pass layout: cargo-doc overview tables at top, full detail docs below.
  */
 export function moduleTemplate(
   mod: Module,
   sourceLink: string | null = null,
   baseUrl: string = '/'
 ): string {
+  // Build breadcrumb parts: each segment links to its package/module index
+  const breadcrumbParts = mod.parentPackage.split('.');
+  const breadcrumbHtml = breadcrumbParts
+    .map(
+      (p, i, arr) =>
+        `<a href="${baseUrl}${arr.slice(0, i + 1).join('/')}/index.html">${escapeHtml(p)}</a>`
+    )
+    .join('<span class="separator"> / </span>');
+
+  // Overview rows for each kind
+  const fnRows = mod.functions.map((fn) => ({
+    name: fn.name,
+    anchor: fn.anchor,
+    summary: fn.overloads[0]?.summary || '',
+    kind: 'function',
+  }));
+  const structRows = mod.structs.map((s) => ({
+    name: s.name,
+    anchor: s.anchor,
+    summary: s.summary || '',
+    kind: 'struct',
+  }));
+  const traitRows = mod.traits.map((t) => ({
+    name: t.name,
+    anchor: t.anchor,
+    summary: t.summary || '',
+    kind: 'trait',
+  }));
+  const aliasRows = mod.aliases.map((a) => ({
+    name: a.name,
+    anchor: a.anchor,
+    summary: a.summary || '',
+    kind: 'alias',
+  }));
+
+  const hasOverview =
+    fnRows.length > 0 || structRows.length > 0 || traitRows.length > 0 || aliasRows.length > 0;
+
   return `
     <article class="module-page">
       <header class="page-header">
         <div class="breadcrumb">
-          ${mod.parentPackage
-            .split('.')
-            .map(
-              (p, i, arr) =>
-                `<a href="${baseUrl}${arr.slice(0, i + 1).join('/')}/index.html">${escapeHtml(p)}</a>`
-            )
-            .join('<span class="separator">/</span>')}
+          ${breadcrumbHtml}<span class="separator"> / </span><span class="breadcrumb-current">${escapeHtml(mod.name)}</span>
         </div>
         <div class="page-title-row">
           <h1 class="page-title">
@@ -243,9 +284,63 @@ export function moduleTemplate(
       }
 
       ${
+        hasOverview
+          ? `
+        <!-- cargo-doc style overview tables: quick scan before detail docs -->
+        <div class="overview-sections">
+          ${
+            fnRows.length > 0
+              ? `
+            <div class="overview-group">
+              <h2 class="overview-heading">Functions</h2>
+              ${overviewTable(fnRows)}
+            </div>
+          `
+              : ''
+          }
+          ${
+            structRows.length > 0
+              ? `
+            <div class="overview-group">
+              <h2 class="overview-heading">Structs</h2>
+              ${overviewTable(structRows)}
+            </div>
+          `
+              : ''
+          }
+          ${
+            traitRows.length > 0
+              ? `
+            <div class="overview-group">
+              <h2 class="overview-heading">Traits</h2>
+              ${overviewTable(traitRows)}
+            </div>
+          `
+              : ''
+          }
+          ${
+            aliasRows.length > 0
+              ? `
+            <div class="overview-group">
+              <h2 class="overview-heading">Constants &amp; Type Aliases</h2>
+              ${overviewTable(aliasRows)}
+            </div>
+          `
+              : ''
+          }
+        </div>
+
+        <div class="section-divider">
+          <span class="section-divider-label">Detail Documentation</span>
+        </div>
+      `
+          : ''
+      }
+
+      ${
         mod.functions.length > 0
           ? `
-        <section class="doc-section">
+        <section class="doc-section" id="functions">
           <h2 class="section-title">Functions</h2>
           <div class="items-list">
             ${mod.functions.map((fn) => functionTemplate(fn)).join('')}
@@ -258,7 +353,7 @@ export function moduleTemplate(
       ${
         mod.structs.length > 0
           ? `
-        <section class="doc-section">
+        <section class="doc-section" id="structs">
           <h2 class="section-title">Structs</h2>
           <div class="items-list">
             ${mod.structs.map((s) => structTemplate(s)).join('')}
@@ -271,7 +366,7 @@ export function moduleTemplate(
       ${
         mod.traits.length > 0
           ? `
-        <section class="doc-section">
+        <section class="doc-section" id="traits">
           <h2 class="section-title">Traits</h2>
           <div class="items-list">
             ${mod.traits.map((t) => traitTemplate(t)).join('')}
@@ -284,8 +379,8 @@ export function moduleTemplate(
       ${
         mod.aliases.length > 0
           ? `
-        <section class="doc-section">
-          <h2 class="section-title">Constants & Aliases</h2>
+        <section class="doc-section" id="constants">
+          <h2 class="section-title">Constants &amp; Type Aliases</h2>
           <div class="items-list">
             ${mod.aliases.map((a) => aliasTemplate(a)).join('')}
           </div>
@@ -314,6 +409,7 @@ export function functionTemplate(fn: FunctionItem): string {
               <span class="item-name">${escapeHtml(fn.name)}</span>
               ${overload.isStatic ? '<span class="modifier-badge">static</span>' : ''}
               ${overload.isAsync ? '<span class="modifier-badge">async</span>' : ''}
+              <a class="item-permalink" href="#${fn.anchor}" aria-label="Permalink to ${escapeHtml(fn.name)}">§</a>
             </h3>
             <div class="item-actions">
               <button class="copy-btn" data-copy="${escapeHtml(overload.signature)}" title="Copy signature">
@@ -351,22 +447,22 @@ export function functionTemplate(fn: FunctionItem): string {
             overload.typeParams.length > 0
               ? `
             <div class="params-section">
-              <h4>Type Parameters</h4>
-              <div class="params-list">
-                ${overload.typeParams
-                  .map(
-                    (p) => `
-                  <div class="param-card">
-                    <div class="param-header">
-                      <span class="param-name">${escapeHtml(p.name)}</span>
-                      <span class="param-type">${escapeHtml(p.type)}</span>
-                    </div>
-                    ${p.descriptionHtml ? `<div class="param-desc">${p.descriptionHtml}</div>` : ''}
-                  </div>
-                `
-                  )
-                  .join('')}
-              </div>
+              <h4>Parameters</h4>
+              <table class="params-table">
+                <tbody>
+                  ${overload.typeParams
+                    .map(
+                      (p) => `
+                    <tr>
+                      <td class="param-name-cell"><span class="param-name">${escapeHtml(p.name)}</span></td>
+                      <td class="param-type-cell"><span class="param-type">${escapeHtml(p.type)}</span></td>
+                      <td class="param-desc-cell">${p.descriptionHtml ? p.descriptionHtml : ''}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>
             </div>
           `
               : ''
@@ -377,23 +473,27 @@ export function functionTemplate(fn: FunctionItem): string {
               ? `
             <div class="params-section">
               <h4>Args</h4>
-              <div class="params-list">
-                ${overload.args
-                  .map(
-                    (arg) => `
-                  <div class="param-card">
-                    <div class="param-header">
-                      <span class="param-name">${escapeHtml(arg.name)}</span>
-                      <span class="param-type">${arg.typeHtml}</span>
-                      ${arg.convention !== 'read' ? `<span class="convention-badge">${arg.convention}</span>` : ''}
-                    </div>
-                    ${arg.descriptionHtml ? `<div class="param-desc">${arg.descriptionHtml}</div>` : ''}
-                    ${arg.default ? `<div class="param-default">Default: <code>${escapeHtml(arg.default)}</code></div>` : ''}
-                  </div>
-                `
-                  )
-                  .join('')}
-              </div>
+              <table class="params-table">
+                <tbody>
+                  ${overload.args
+                    .map(
+                      (arg) => `
+                    <tr>
+                      <td class="param-name-cell">
+                        <span class="param-name">${escapeHtml(arg.name)}</span>
+                        ${arg.convention !== 'read' ? `<span class="convention-badge">${arg.convention}</span>` : ''}
+                      </td>
+                      <td class="param-type-cell"><span class="param-type">${arg.typeHtml}</span></td>
+                      <td class="param-desc-cell">
+                        ${arg.descriptionHtml ? arg.descriptionHtml : ''}
+                        ${arg.default ? `<span class="param-default">Default: <code>${escapeHtml(arg.default)}</code></span>` : ''}
+                      </td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>
             </div>
           `
               : ''
@@ -404,10 +504,14 @@ export function functionTemplate(fn: FunctionItem): string {
               ? `
             <div class="returns-section">
               <h4>Returns</h4>
-              <div class="return-card">
-                <span class="return-type">${overload.returns.typeHtml}</span>
-                ${overload.returns.descriptionHtml ? `<div class="return-desc">${overload.returns.descriptionHtml}</div>` : ''}
-              </div>
+              <table class="params-table">
+                <tbody>
+                  <tr>
+                    <td class="param-type-cell"><span class="param-type">${overload.returns.typeHtml}</span></td>
+                    <td class="param-desc-cell">${overload.returns.descriptionHtml ? overload.returns.descriptionHtml : ''}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           `
               : ''
@@ -417,7 +521,7 @@ export function functionTemplate(fn: FunctionItem): string {
             overload.raises
               ? `
             <div class="raises-section">
-              <h4>⚠️ Raises</h4>
+              <h4>Raises</h4>
               <div class="raises-content">${overload.raises.descriptionHtml}</div>
             </div>
           `
@@ -452,6 +556,7 @@ export function structTemplate(struct: StructItem): string {
         <h3 class="item-title">
           <span class="kind-badge struct">struct</span>
           <span class="item-name">${escapeHtml(struct.name)}</span>
+          <a class="item-permalink" href="#${struct.anchor}" aria-label="Permalink to ${escapeHtml(struct.name)}">§</a>
         </h3>
         <div class="item-actions">
           <button class="copy-btn" data-copy="${escapeHtml(struct.signature)}" title="Copy signature">
@@ -482,21 +587,21 @@ export function structTemplate(struct: StructItem): string {
           ? `
         <div class="fields-section">
           <h4>Fields</h4>
-          <div class="fields-list">
-            ${struct.fields
-              .map(
-                (f) => `
-              <div class="field-card" id="${struct.anchor}-${f.name}">
-                <div class="field-header">
-                  <span class="field-name">${escapeHtml(f.name)}</span>
-                  <span class="field-type">${f.typeHtml}</span>
-                </div>
-                ${f.summary ? `<div class="field-desc">${escapeHtml(f.summary)}</div>` : ''}
-              </div>
-            `
-              )
-              .join('')}
-          </div>
+          <table class="fields-table">
+            <tbody>
+              ${struct.fields
+                .map(
+                  (f) => `
+                <tr id="${struct.anchor}-${f.name}">
+                  <td class="field-name-cell"><span class="field-name">${escapeHtml(f.name)}</span></td>
+                  <td class="field-type-cell">${f.typeHtml}</td>
+                  <td class="field-desc-cell">${f.summary ? escapeHtml(f.summary) : ''}</td>
+                </tr>
+              `
+                )
+                .join('')}
+            </tbody>
+          </table>
         </div>
       `
           : ''
@@ -507,8 +612,18 @@ export function structTemplate(struct: StructItem): string {
           ? `
         <div class="methods-section">
           <h4>Methods</h4>
+          <div class="methods-overview">
+            ${overviewTable(
+              struct.methods.map((m) => ({
+                name: m.name,
+                anchor: `${struct.anchor}-${m.anchor}`,
+                summary: m.overloads[0]?.summary || '',
+                kind: 'function',
+              }))
+            )}
+          </div>
           <div class="methods-list">
-            ${struct.methods.map((m) => functionTemplate(m)).join('')}
+            ${struct.methods.map((m) => methodTemplate(m, struct.anchor)).join('')}
           </div>
         </div>
       `
@@ -529,6 +644,135 @@ export function structTemplate(struct: StructItem): string {
 }
 
 /**
+ * Generate a method item HTML (same as function but with a namespaced anchor).
+ */
+function methodTemplate(fn: FunctionItem, structAnchor: string): string {
+  const methodAnchor = `${structAnchor}-${fn.anchor}`;
+  return `
+    <div class="doc-item function method" id="${methodAnchor}">
+      <div class="item-ribbon function"></div>
+      ${fn.overloads
+        .map(
+          (overload, idx) => `
+        <div class="overload ${idx > 0 ? 'additional' : ''}">
+          <div class="item-header">
+            <h4 class="item-title method-title">
+              <span class="kind-badge function">fn</span>
+              <span class="item-name">${escapeHtml(fn.name)}</span>
+              ${overload.isStatic ? '<span class="modifier-badge">static</span>' : ''}
+              ${overload.isAsync ? '<span class="modifier-badge">async</span>' : ''}
+              <a class="item-permalink" href="#${methodAnchor}" aria-label="Permalink to ${escapeHtml(fn.name)}">§</a>
+            </h4>
+            <div class="item-actions">
+              <button class="copy-btn" data-copy="${escapeHtml(overload.signature)}" title="Copy signature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="signature-card">
+            <pre class="signature">${overload.signatureHtml}</pre>
+          </div>
+
+          ${overload.summary ? `<p class="item-summary">${escapeHtml(overload.summary)}</p>` : ''}
+          ${overload.descriptionHtml ? `<div class="item-description">${overload.descriptionHtml}</div>` : ''}
+
+          ${
+            overload.typeParams.length > 0
+              ? `
+            <div class="params-section">
+              <h5>Parameters</h5>
+              <table class="params-table">
+                <tbody>
+                  ${overload.typeParams
+                    .map(
+                      (p) => `
+                    <tr>
+                      <td class="param-name-cell"><span class="param-name">${escapeHtml(p.name)}</span></td>
+                      <td class="param-type-cell"><span class="param-type">${escapeHtml(p.type)}</span></td>
+                      <td class="param-desc-cell">${p.descriptionHtml}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+          `
+              : ''
+          }
+
+          ${
+            overload.args.length > 0
+              ? `
+            <div class="params-section">
+              <h5>Args</h5>
+              <table class="params-table">
+                <tbody>
+                  ${overload.args
+                    .map(
+                      (arg) => `
+                    <tr>
+                      <td class="param-name-cell">
+                        <span class="param-name">${escapeHtml(arg.name)}</span>
+                        ${arg.convention !== 'read' ? `<span class="convention-badge">${arg.convention}</span>` : ''}
+                      </td>
+                      <td class="param-type-cell"><span class="param-type">${arg.typeHtml}</span></td>
+                      <td class="param-desc-cell">
+                        ${arg.descriptionHtml}
+                        ${arg.default ? `<span class="param-default">Default: <code>${escapeHtml(arg.default)}</code></span>` : ''}
+                      </td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+          `
+              : ''
+          }
+
+          ${
+            overload.returns
+              ? `
+            <div class="returns-section">
+              <h5>Returns</h5>
+              <table class="params-table">
+                <tbody>
+                  <tr>
+                    <td class="param-type-cell"><span class="param-type">${overload.returns.typeHtml}</span></td>
+                    <td class="param-desc-cell">${overload.returns.descriptionHtml}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          `
+              : ''
+          }
+
+          ${
+            overload.raises
+              ? `
+            <div class="raises-section">
+              <h5>Raises</h5>
+              <div class="raises-content">${overload.raises.descriptionHtml}</div>
+            </div>
+          `
+              : ''
+          }
+        </div>
+      `
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+/**
  * Generate trait item HTML.
  */
 export function traitTemplate(trait: TraitItem): string {
@@ -539,6 +783,7 @@ export function traitTemplate(trait: TraitItem): string {
         <h3 class="item-title">
           <span class="kind-badge trait">trait</span>
           <span class="item-name">${escapeHtml(trait.name)}</span>
+          <a class="item-permalink" href="#${trait.anchor}" aria-label="Permalink to ${escapeHtml(trait.name)}">§</a>
         </h3>
       </div>
 
@@ -561,8 +806,18 @@ export function traitTemplate(trait: TraitItem): string {
           ? `
         <div class="methods-section">
           <h4>Required Methods</h4>
+          <div class="methods-overview">
+            ${overviewTable(
+              trait.methods.map((m) => ({
+                name: m.name,
+                anchor: `${trait.anchor}-${m.anchor}`,
+                summary: m.overloads[0]?.summary || '',
+                kind: 'function',
+              }))
+            )}
+          </div>
           <div class="methods-list">
-            ${trait.methods.map((m) => functionTemplate(m)).join('')}
+            ${trait.methods.map((m) => methodTemplate(m, trait.anchor)).join('')}
           </div>
         </div>
       `
@@ -583,6 +838,7 @@ export function aliasTemplate(alias: AliasItem): string {
         <h3 class="item-title">
           <span class="kind-badge alias">const</span>
           <span class="item-name">${escapeHtml(alias.name)}</span>
+          <a class="item-permalink" href="#${alias.anchor}" aria-label="Permalink to ${escapeHtml(alias.name)}">§</a>
         </h3>
       </div>
 
@@ -602,17 +858,44 @@ export function aliasTemplate(alias: AliasItem): string {
       }
 
       ${alias.summary ? `<p class="item-summary">${escapeHtml(alias.summary)}</p>` : ''}
+
+      ${
+        alias.descriptionHtml
+          ? `
+        <div class="item-description">${alias.descriptionHtml}</div>
+      `
+          : ''
+      }
     </div>
   `;
 }
 
 /**
  * Generate index page for a package.
+ * Cargo-doc UX: re-exports primary, modules secondary.
  */
 export function packageIndexTemplate(
   pkg: import('@mojodoc/transform').Package,
   baseUrl: string = '/'
 ): string {
+  // Group public API items by kind for the re-exports overview
+  const allPublicItems = pkg.publicApi.flatMap((s) => s.items);
+
+  // Determine if we have named sections or just a flat Public API
+  const hasNamedSections =
+    pkg.publicApi.length > 1 ||
+    (pkg.publicApi.length === 1 && pkg.publicApi[0].title !== 'Public API');
+
+  // When a package has explicit public API (from __init__.mojo re-exports),
+  // internal modules are implementation details and should not be surfaced.
+  // Only show modules/subpackages when no public API is declared (fallback for
+  // packages without __init__.mojo re-exports).
+  const hasExplicitPublicApi = pkg.publicApi.some((s) => s.items.length > 0);
+  const visibleModules = hasExplicitPublicApi
+    ? []
+    : pkg.modules.filter((m) => m.name !== '__init__');
+  const visibleSubpackages = hasExplicitPublicApi ? [] : pkg.subpackages;
+
   return `
     <article class="package-page">
       <header class="page-header">
@@ -634,85 +917,127 @@ export function packageIndexTemplate(
       }
 
       ${
-        pkg.publicApi.length > 0
-          ? `
-        <section class="doc-section public-api-section">
-          ${pkg.publicApi
-            .map(
-              (section) => `
-            <div class="api-section">
-              <h2 class="section-title">${escapeHtml(section.title)}</h2>
-              <div class="api-grid">
-                ${section.items
-                  .map(
-                    (item) => `
-                  <a href="${baseUrl}${item.urlPath}/index.html#${item.anchor}" class="api-card ${item.kind}">
-                    <div class="api-card-header">
-                      <span class="kind-badge ${item.kind}">${kindBadge(item.kind)}</span>
-                      <span class="api-name">${escapeHtml(item.name)}</span>
-                    </div>
-                    ${item.summary ? `<p class="api-summary">${escapeHtml(item.summary)}</p>` : ''}
-                    <span class="api-source">from .${escapeHtml(item.sourceModule)}</span>
-                  </a>
-                `
-                  )
-                  .join('')}
+        allPublicItems.length > 0
+          ? hasNamedSections
+            ? `
+          <!-- Named sections from __init__.mojo comments -->
+          <section class="doc-section re-exports-section" id="re-exports">
+            ${pkg.publicApi
+              .map(
+                (section) => `
+              <div class="re-export-group">
+                <h2 class="overview-heading">${escapeHtml(section.title)}</h2>
+                ${reExportTable(section.items, baseUrl)}
               </div>
-            </div>
-          `
-            )
-            .join('')}
-        </section>
-      `
+            `
+              )
+              .join('')}
+          </section>
+        `
+            : `
+          <!-- Flat re-exports grouped by kind -->
+          <section class="doc-section re-exports-section" id="re-exports">
+            <h2 class="section-title">Re-exports</h2>
+            ${renderReExportsByKind(allPublicItems, baseUrl)}
+          </section>
+        `
           : ''
       }
 
       ${
-        pkg.modules.filter((m) => m.name !== '__init__').length > 0
+        visibleModules.length > 0
           ? `
-        <section class="doc-section modules-section">
+        <section class="doc-section modules-section" id="modules">
           <h2 class="section-title">Modules</h2>
-          <div class="modules-list">
-            ${pkg.modules
-              .filter((m) => m.name !== '__init__')
-              .map(
-                (m) => `
-              <div class="module-item">
-                <a href="${m.name}/index.html" class="module-link">${escapeHtml(m.name)}</a>
-                ${m.summary ? `<span class="module-desc">${escapeHtml(m.summary)}</span>` : ''}
-              </div>
-            `
-              )
-              .join('')}
-          </div>
+          <table class="overview-table modules-table">
+            <tbody>
+              ${visibleModules
+                .map(
+                  (m) => `
+                <tr>
+                  <td class="ov-name">
+                    <span class="kind-badge module">mod</span>
+                    <a href="${m.name}/index.html" class="ov-link">${escapeHtml(m.name)}</a>
+                  </td>
+                  <td class="ov-summary">${m.summary ? escapeHtml(m.summary) : ''}</td>
+                </tr>
+              `
+                )
+                .join('')}
+            </tbody>
+          </table>
         </section>
       `
           : ''
       }
 
       ${
-        pkg.subpackages.length > 0
+        visibleSubpackages.length > 0
           ? `
-        <section class="doc-section modules-section">
+        <section class="doc-section modules-section" id="subpackages">
           <h2 class="section-title">Subpackages</h2>
-          <div class="modules-list">
-            ${pkg.subpackages
-              .map(
-                (sub) => `
-              <div class="module-item">
-                <a href="${sub.name}/index.html" class="module-link">${escapeHtml(sub.name)}</a>
-                ${sub.summary ? `<span class="module-desc">${escapeHtml(sub.summary)}</span>` : ''}
-              </div>
-            `
-              )
-              .join('')}
-          </div>
+          <table class="overview-table modules-table">
+            <tbody>
+              ${visibleSubpackages
+                .map(
+                  (sub) => `
+                <tr>
+                  <td class="ov-name">
+                    <span class="kind-badge package">pkg</span>
+                    <a href="${sub.name}/index.html" class="ov-link">${escapeHtml(sub.name)}</a>
+                  </td>
+                  <td class="ov-summary">${sub.summary ? escapeHtml(sub.summary) : ''}</td>
+                </tr>
+              `
+                )
+                .join('')}
+            </tbody>
+          </table>
         </section>
       `
           : ''
       }
     </article>
   `;
+}
+
+/**
+ * Render re-exports grouped by kind (Functions, Structs, Traits, Constants).
+ * Used when there are no named sections from __init__.mojo.
+ */
+function renderReExportsByKind(items: PublicApiItem[], baseUrl: string): string {
+  const byKind: Record<string, PublicApiItem[]> = {
+    struct: [],
+    trait: [],
+    function: [],
+    alias: [],
+  };
+
+  for (const item of items) {
+    const key = item.kind in byKind ? item.kind : 'alias';
+    byKind[key].push(item);
+  }
+
+  const kindLabels: Record<string, string> = {
+    struct: 'Structs',
+    trait: 'Traits',
+    function: 'Functions',
+    alias: 'Constants &amp; Type Aliases',
+  };
+
+  const order = ['struct', 'trait', 'function', 'alias'];
+
+  return order
+    .filter((k) => byKind[k].length > 0)
+    .map(
+      (k) => `
+      <div class="re-export-group">
+        <h3 class="re-export-kind-heading">${kindLabels[k]}</h3>
+        ${reExportTable(byKind[k], baseUrl)}
+      </div>
+    `
+    )
+    .join('');
 }
 
 /**

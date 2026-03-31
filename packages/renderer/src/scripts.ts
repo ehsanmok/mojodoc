@@ -326,47 +326,172 @@ export const scripts = `
   });
 
   // ============================================================================
-  // Nav Tree Expand/Collapse (Modular-style)
+  // Sidebar: grouped public-API item list + scroll-spy on module pages
   // ============================================================================
 
-  document.querySelectorAll('.nav-link').forEach(link => {
-    const node = link.closest('.nav-node');
-    const hasChildren = node?.querySelector('.nav-children') || node?.querySelector('.nav-items');
-    const arrow = link.querySelector('.nav-arrow');
+  function buildSidebarKinds() {
+    const kindsPanel = document.getElementById('sidebar-kinds');
+    if (!kindsPanel) return;
+    const content = document.querySelector('.content');
+    if (!content) return;
 
-    if (hasChildren && arrow) {
-      // Make arrow clickable to toggle expand/collapse
-      arrow.style.cursor = 'pointer';
-      arrow.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        node.classList.toggle('expanded');
-      });
+    // Package-index pages have re-export overview tables; module pages have
+    // .doc-item sections. Use different strategies for each.
+    if (content.querySelector('.re-export-table')) {
+      buildPublicApiSidebar(kindsPanel, content);
+    } else {
+      buildModuleDetailSidebar(kindsPanel, content);
     }
+  }
 
-    // For package links, clicking expands and navigates
-    const isPackage = link.classList.contains('package');
-    if (isPackage && hasChildren) {
-      link.addEventListener('click', (e) => {
-        // If not expanded, prevent navigation and just expand
-        if (!node.classList.contains('expanded')) {
+  // --------------------------------------------------------------------------
+  // Package index: scan all re-export table rows, group by kind, list items
+  // --------------------------------------------------------------------------
+  function buildPublicApiSidebar(kindsPanel, content) {
+    const KIND_ORDER = ['function', 'struct', 'trait', 'alias'];
+    const KIND_ICONS  = { function: 'fn', struct: 'st', trait: 'tr', alias: 'al' };
+    const KIND_LABELS = { function: 'Functions', struct: 'Structs', trait: 'Traits', alias: 'Aliases' };
+
+    const groups = {};
+    content.querySelectorAll('.re-export-table tbody tr').forEach(row => {
+      const badge = row.querySelector('.kind-badge');
+      const link  = row.querySelector('.ov-link');
+      if (!link) return;
+      let kind = 'function';
+      if (badge) {
+        const k = [...badge.classList].find(c => c !== 'kind-badge');
+        if (k) kind = k;
+      }
+      if (!groups[kind]) groups[kind] = [];
+      groups[kind].push({ name: link.textContent.trim(), href: link.getAttribute('href') });
+    });
+
+    const total = Object.values(groups).reduce((s, arr) => s + arr.length, 0);
+    if (total === 0) { kindsPanel.style.display = 'none'; return; }
+
+    let html = '<div class="sidebar-kind-header">On this page</div><ul class="sidebar-kind-list">';
+    KIND_ORDER.forEach(kind => {
+      const items = groups[kind];
+      if (!items || items.length === 0) return;
+      html += \`
+        <li class="sidebar-group">
+          <div class="sidebar-group-label">
+            <span class="sidebar-kind-icon">\${KIND_ICONS[kind] || '§'}</span>
+            <span class="sidebar-kind-label">\${KIND_LABELS[kind] || kind}</span>
+            <span class="sidebar-kind-count">\${items.length}</span>
+          </div>
+          <ul class="sidebar-item-list">
+            \${items.map(item => \`<li><a href="\${escapeHtml(item.href)}" class="sidebar-item-link">\${escapeHtml(item.name)}</a></li>\`).join('')}
+          </ul>
+        </li>\`;
+    });
+    html += '</ul>';
+    kindsPanel.innerHTML = html;
+  }
+
+  // --------------------------------------------------------------------------
+  // Module detail: section-level links with individual item anchors beneath
+  // --------------------------------------------------------------------------
+  function buildModuleDetailSidebar(kindsPanel, content) {
+    const docSections = Array.from(content.querySelectorAll('.doc-section[id]'));
+    if (docSections.length === 0) { kindsPanel.style.display = 'none'; return; }
+
+    const links = [];
+    docSections.forEach(section => {
+      const id = section.id;
+      if (!id) return;
+      const h2 = section.querySelector('h2.section-title');
+      const label = h2?.textContent?.trim() || idToLabel(id);
+      const icon  = kindIcon(label);
+      const items = Array.from(section.querySelectorAll('.doc-item[id]')).map(el => ({
+        name:   el.querySelector('.item-name')?.textContent?.trim() || el.id,
+        anchor: el.id,
+      }));
+      links.push({ id, label, icon, el: section, items });
+    });
+
+    if (links.length === 0) { kindsPanel.style.display = 'none'; return; }
+
+    let html = '<div class="sidebar-kind-header">On this page</div><ul class="sidebar-kind-list">';
+    links.forEach(l => {
+      if (l.items.length > 0) {
+        html += \`
+          <li class="sidebar-group">
+            <a href="#\${l.id}" class="sidebar-group-label sidebar-kind-link" data-section-id="\${l.id}">
+              <span class="sidebar-kind-icon">\${l.icon}</span>
+              <span class="sidebar-kind-label">\${escapeHtml(l.label)}</span>
+              <span class="sidebar-kind-count">\${l.items.length}</span>
+            </a>
+            <ul class="sidebar-item-list">
+              \${l.items.map(item => \`<li><a href="#\${item.anchor}" class="sidebar-item-link">\${escapeHtml(item.name)}</a></li>\`).join('')}
+            </ul>
+          </li>\`;
+      } else {
+        html += \`
+          <li>
+            <a href="#\${l.id}" class="sidebar-kind-link" data-section-id="\${l.id}">
+              <span class="sidebar-kind-icon">\${l.icon}</span>
+              <span class="sidebar-kind-label">\${escapeHtml(l.label)}</span>
+            </a>
+          </li>\`;
+      }
+    });
+    html += '</ul>';
+    kindsPanel.innerHTML = html;
+
+    // Smooth scroll for all sidebar links
+    kindsPanel.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', function(e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
           e.preventDefault();
-          node.classList.add('expanded');
+          window.scrollTo({ top: target.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
         }
       });
-    }
-  });
+    });
 
-  // Auto-expand active nodes on page load
-  document.querySelectorAll('.nav-node.active').forEach(node => {
-    node.classList.add('expanded');
-    // Also expand parent nodes
-    let parent = node.parentElement?.closest('.nav-node');
-    while (parent) {
-      parent.classList.add('expanded');
-      parent = parent.parentElement?.closest('.nav-node');
+    // Scroll-spy: highlight the section whose .doc-item is visible
+    if ('IntersectionObserver' in window) {
+      const visibleSections = new Set();
+      const spyObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) visibleSections.add(entry.target.id);
+          else visibleSections.delete(entry.target.id);
+        });
+        let activeSection = null;
+        for (const l of links) {
+          if (visibleSections.has(l.id)) { activeSection = l.id; break; }
+        }
+        kindsPanel.querySelectorAll('.sidebar-kind-link').forEach(a => {
+          a.classList.toggle('active', a.dataset.sectionId === activeSection);
+        });
+      }, { root: null, rootMargin: '-10% 0px -60% 0px', threshold: 0 });
+      links.forEach(l => { if (l.el) spyObserver.observe(l.el); });
     }
-  });
+  }
+
+  function idToLabel(id) {
+    // Convert kebab/slug id to a readable label: "re-exports" → "Re-exports"
+    return id.replace(/-/g, ' ').replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  }
+
+  function kindIcon(label) {
+    const l = label.toLowerCase();
+    if (l === 'api' || l.includes('re-export') || l.includes('export')) return 'api';
+    if (l.includes('function')) return 'fn';
+    if (l.includes('struct')) return 'st';
+    if (l.includes('trait')) return 'tr';
+    if (l.includes('constant') || l.includes('alias')) return 'al';
+    if (l.includes('module') || l.includes('subpackage')) return 'mod';
+    return '§';
+  }
+
+  // Run after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildSidebarKinds);
+  } else {
+    buildSidebarKinds();
+  }
 
   // ============================================================================
   // Scroll Progress Indicator

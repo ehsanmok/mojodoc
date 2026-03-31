@@ -557,7 +557,7 @@ html:not([data-theme]) .sun-icon {
   background: var(--bg-deep);
   border-right: 1px solid var(--border-subtle);
   overflow-y: auto;
-  padding: var(--space-6);
+  padding: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--border-default) transparent;
 }
@@ -2130,5 +2130,572 @@ a.type-link[href^="https://"]:hover .sig-type::after {
   .doc-item {
     break-inside: avoid;
   }
+}
+
+/* ============================================================================
+   Overview Tables (cargo-doc style: name | summary)
+   Inferno twist: ember accent on hover row, mono name column
+   ============================================================================ */
+
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 0.925rem;
+}
+
+.overview-table tbody tr {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--duration-fast) var(--ease-out-expo);
+}
+
+.overview-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.overview-table tbody tr:hover {
+  background: rgba(255, 107, 53, 0.04);
+}
+
+.overview-table .ov-name {
+  width: 30%;
+  min-width: 160px;
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.overview-table .ov-name .kind-badge {
+  margin-right: var(--space-2);
+  font-size: 0.7rem;
+  padding: 1px 5px;
+  vertical-align: middle;
+}
+
+.overview-table .ov-link {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.overview-table .ov-link:hover {
+  color: var(--ember);
+  border-bottom-color: var(--ember);
+}
+
+.overview-table .ov-summary {
+  padding: var(--space-3) 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+/* ============================================================================
+   Overview Sections (groups before detail docs)
+   ============================================================================ */
+
+.overview-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.overview-group {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.overview-heading {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.overview-group .overview-table {
+  padding: 0 var(--space-4);
+}
+
+/* ============================================================================
+   Section Divider (between overview tables and detail docs)
+   ============================================================================ */
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-8) 0;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.section-divider-label {
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
+/* ============================================================================
+   Re-exports Section (package index, primary API surface)
+   ============================================================================ */
+
+.re-exports-section {
+  margin-bottom: var(--space-8);
+}
+
+.re-export-group {
+  margin-bottom: var(--space-6);
+}
+
+.re-export-group:last-child {
+  margin-bottom: 0;
+}
+
+.re-export-kind-heading {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.re-export-table {
+  margin-top: var(--space-2);
+}
+
+/* ============================================================================
+   Item Permalink (§ anchor — cargo doc pattern, Inferno ember color)
+   ============================================================================ */
+
+.item-permalink {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ember);
+  text-decoration: none;
+  margin-left: var(--space-2);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out-expo);
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.doc-item:hover .item-permalink,
+.item-title:hover .item-permalink {
+  opacity: 1;
+}
+
+/* ============================================================================
+   Params / Returns Table (replaces card layout — more compact, scannable)
+   ============================================================================ */
+
+.params-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: 0.875rem;
+}
+
+.params-table tr {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.params-table tr:last-child {
+  border-bottom: none;
+}
+
+.param-name-cell {
+  width: 20%;
+  min-width: 100px;
+  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.param-type-cell {
+  width: 25%;
+  min-width: 120px;
+  padding: var(--space-2) var(--space-3);
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.param-desc-cell {
+  padding: var(--space-2) 0;
+  color: var(--text-secondary);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.param-desc-cell p {
+  margin: 0;
+}
+
+.param-default {
+  display: inline-block;
+  margin-top: var(--space-1);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   Fields Table (structs — tabular form like cargo doc)
+   ============================================================================ */
+
+.fields-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: 0.875rem;
+}
+
+.fields-table tr {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.fields-table tr:last-child {
+  border-bottom: none;
+}
+
+.field-name-cell {
+  width: 20%;
+  min-width: 100px;
+  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.field-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-field);
+  font-size: 0.88rem;
+}
+
+.field-type-cell {
+  width: 25%;
+  min-width: 120px;
+  padding: var(--space-2) var(--space-3);
+  vertical-align: top;
+}
+
+.field-desc-cell {
+  padding: var(--space-2) 0;
+  color: var(--text-secondary);
+  vertical-align: top;
+  font-size: 0.875rem;
+}
+
+/* ============================================================================
+   Methods Overview Table (inside structs/traits)
+   ============================================================================ */
+
+.methods-overview {
+  margin-bottom: var(--space-6);
+}
+
+.methods-overview .overview-table {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.methods-overview .overview-table .ov-name {
+  padding-left: var(--space-3);
+}
+
+/* ============================================================================
+   Modules Table (package index, secondary — simple two columns)
+   ============================================================================ */
+
+.modules-table .ov-name {
+  width: 25%;
+}
+
+.modules-section {
+  margin-top: var(--space-8);
+}
+
+/* ============================================================================
+   Breadcrumb (updated — current module not linked)
+   ============================================================================ */
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Method title (h4 inside struct/trait — slightly smaller than top-level h3)
+   ============================================================================ */
+
+.method-title {
+  font-size: 1rem !important;
+}
+
+/* ============================================================================
+   Light mode overrides for new elements
+   ============================================================================ */
+
+[data-theme="light"] .overview-group {
+  background: #f8f9fa;
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .overview-table tbody tr:hover {
+  background: rgba(255, 107, 53, 0.06);
+}
+
+[data-theme="light"] .overview-heading,
+[data-theme="light"] .re-export-kind-heading {
+  background: #f0f2f5;
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .section-divider::before,
+[data-theme="light"] .section-divider::after {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   Sidebar: "On this page" kind anchors
+   ============================================================================ */
+
+/* Sidebar fills its full height with the kind-anchor panel */
+.sidebar-kinds {
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-kind-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+  padding-left: var(--space-1);
+}
+
+.sidebar-kind-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sidebar-kind-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background var(--duration-fast) var(--ease-out-expo),
+              color var(--duration-fast) var(--ease-out-expo),
+              border-left-color var(--duration-fast) var(--ease-out-expo);
+  border-left: 2px solid transparent;
+  line-height: 1.3;
+}
+
+.sidebar-kind-link:hover {
+  background: rgba(255, 107, 53, 0.06);
+  color: var(--text-primary);
+}
+
+.sidebar-kind-link.active {
+  border-left-color: var(--ember);
+  background: rgba(255, 107, 53, 0.08);
+  color: var(--ember);
+  font-weight: 600;
+}
+
+.sidebar-kind-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  min-width: 22px;
+  height: 16px;
+  border-radius: 3px;
+  background: rgba(255, 107, 53, 0.12);
+  color: var(--ember);
+  padding: 0 3px;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+.sidebar-kind-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-kind-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-raised);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+.sidebar-kind-link.active .sidebar-kind-count {
+  color: var(--ember);
+  background: rgba(255, 107, 53, 0.12);
+}
+
+/* ── Light-mode overrides ── */
+
+[data-theme="light"] .sidebar-kind-link:hover {
+  background: rgba(255, 107, 53, 0.05);
+}
+
+[data-theme="light"] .sidebar-kind-link.active {
+  background: rgba(255, 107, 53, 0.08);
+}
+
+[data-theme="light"] .sidebar-kind-icon {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+[data-theme="light"] .sidebar-kind-count {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .sidebar-kind-link.active .sidebar-kind-count {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+/* ── Sidebar grouped items (package index + module detail) ── */
+
+.sidebar-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-group-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  line-height: 1.3;
+  user-select: none;
+}
+
+/* When sidebar-group-label is also a link (module pages) */
+a.sidebar-group-label {
+  text-decoration: none;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background var(--duration-fast) var(--ease-out-expo),
+              color var(--duration-fast) var(--ease-out-expo);
+}
+
+a.sidebar-group-label:hover {
+  background: rgba(255, 107, 53, 0.06);
+  color: var(--text-primary);
+}
+
+a.sidebar-group-label.active {
+  border-left-color: var(--ember);
+  background: rgba(255, 107, 53, 0.08);
+  color: var(--ember);
+  font-weight: 600;
+}
+
+a.sidebar-group-label.active .sidebar-kind-count {
+  color: var(--ember);
+  background: rgba(255, 107, 53, 0.12);
+}
+
+.sidebar-item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--space-1) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sidebar-item-link {
+  display: block;
+  padding: 3px var(--space-2);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--duration-fast) var(--ease-out-expo),
+              background var(--duration-fast) var(--ease-out-expo);
+  border-left: 2px solid transparent;
+}
+
+.sidebar-item-link:hover {
+  color: var(--text-primary);
+  background: rgba(255, 107, 53, 0.05);
+}
+
+[data-theme="light"] .sidebar-group-label {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] a.sidebar-group-label:hover {
+  background: rgba(255, 107, 53, 0.05);
+}
+
+[data-theme="light"] a.sidebar-group-label.active {
+  background: rgba(255, 107, 53, 0.08);
+}
+
+[data-theme="light"] .sidebar-item-link:hover {
+  background: rgba(255, 107, 53, 0.05);
 }
 `;
