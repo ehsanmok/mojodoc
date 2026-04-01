@@ -2614,6 +2614,17 @@ a.type-link[href^="https://"]:hover .sig-type::after {
   flex-direction: column;
 }
 
+/* Row wrapper for module-detail pages (link + fold button) */
+.sidebar-group-row {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-group-row .sidebar-group-label {
+  flex: 1;
+  min-width: 0;
+}
+
 .sidebar-group-label {
   display: flex;
   align-items: center;
@@ -2625,15 +2636,16 @@ a.type-link[href^="https://"]:hover .sig-type::after {
   border-radius: 6px;
   line-height: 1.3;
   user-select: none;
+  cursor: pointer;
 }
 
 /* When sidebar-group-label is also a link (module pages) */
 a.sidebar-group-label {
   text-decoration: none;
-  cursor: pointer;
   border-left: 2px solid transparent;
   transition: background var(--duration-fast) var(--ease-out-expo),
               color var(--duration-fast) var(--ease-out-expo);
+  border-radius: 6px 0 0 6px;
 }
 
 a.sidebar-group-label:hover {
@@ -2651,6 +2663,57 @@ a.sidebar-group-label.active {
 a.sidebar-group-label.active .sidebar-kind-count {
   color: var(--ember);
   background: rgba(255, 107, 53, 0.12);
+}
+
+/* div label (package-index pages) – whole row is the toggle */
+div.sidebar-group-label:hover {
+  background: rgba(255, 107, 53, 0.06);
+  color: var(--text-primary);
+}
+
+/* Fold/unfold button for module-detail pages */
+.sidebar-fold-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 0 6px 6px 0;
+  transition: background var(--duration-fast) var(--ease-out-expo),
+              color var(--duration-fast) var(--ease-out-expo);
+}
+
+.sidebar-fold-btn:hover {
+  background: rgba(255, 107, 53, 0.06);
+  color: var(--text-primary);
+}
+
+/* Chevron icon */
+.sidebar-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--text-muted);
+  transition: transform 180ms var(--ease-out-expo);
+}
+
+/* Inside div labels the chevron is already in the flex row */
+div.sidebar-group-label .sidebar-chevron {
+  margin-left: auto;
+}
+
+/* Collapsed state: hide items and rotate chevron */
+.sidebar-group.collapsed .sidebar-item-list {
+  display: none;
+}
+
+.sidebar-group.collapsed .sidebar-chevron {
+  transform: rotate(-90deg);
 }
 
 .sidebar-item-list {
@@ -2675,7 +2738,6 @@ a.sidebar-group-label.active .sidebar-kind-count {
   text-overflow: ellipsis;
   transition: color var(--duration-fast) var(--ease-out-expo),
               background var(--duration-fast) var(--ease-out-expo);
-  border-left: 2px solid transparent;
 }
 
 .sidebar-item-link:hover {
@@ -2683,8 +2745,8 @@ a.sidebar-group-label.active .sidebar-kind-count {
   background: rgba(255, 107, 53, 0.05);
 }
 
-[data-theme="light"] .sidebar-group-label {
-  color: var(--text-secondary);
+[data-theme="light"] div.sidebar-group-label:hover {
+  background: rgba(255, 107, 53, 0.05);
 }
 
 [data-theme="light"] a.sidebar-group-label:hover {
@@ -2693,6 +2755,10 @@ a.sidebar-group-label.active .sidebar-kind-count {
 
 [data-theme="light"] a.sidebar-group-label.active {
   background: rgba(255, 107, 53, 0.08);
+}
+
+[data-theme="light"] .sidebar-fold-btn:hover {
+  background: rgba(255, 107, 53, 0.05);
 }
 
 [data-theme="light"] .sidebar-item-link:hover {

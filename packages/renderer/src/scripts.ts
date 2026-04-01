@@ -375,10 +375,11 @@ export const scripts = `
       if (!items || items.length === 0) return;
       html += \`
         <li class="sidebar-group">
-          <div class="sidebar-group-label">
+          <div class="sidebar-group-label" role="button" tabindex="0">
             <span class="sidebar-kind-icon">\${KIND_ICONS[kind] || '§'}</span>
             <span class="sidebar-kind-label">\${KIND_LABELS[kind] || kind}</span>
             <span class="sidebar-kind-count">\${items.length}</span>
+            \${chevronSvg()}
           </div>
           <ul class="sidebar-item-list">
             \${items.map(item => \`<li><a href="\${escapeHtml(item.href)}" class="sidebar-item-link">\${escapeHtml(item.name)}</a></li>\`).join('')}
@@ -387,6 +388,14 @@ export const scripts = `
     });
     html += '</ul>';
     kindsPanel.innerHTML = html;
+
+    // Toggle collapse on group label click
+    kindsPanel.querySelectorAll('.sidebar-group-label[role="button"]').forEach(label => {
+      label.addEventListener('click', () => label.closest('.sidebar-group').classList.toggle('collapsed'));
+      label.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); label.closest('.sidebar-group').classList.toggle('collapsed'); }
+      });
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -417,11 +426,14 @@ export const scripts = `
       if (l.items.length > 0) {
         html += \`
           <li class="sidebar-group">
-            <a href="#\${l.id}" class="sidebar-group-label sidebar-kind-link" data-section-id="\${l.id}">
-              <span class="sidebar-kind-icon">\${l.icon}</span>
-              <span class="sidebar-kind-label">\${escapeHtml(l.label)}</span>
-              <span class="sidebar-kind-count">\${l.items.length}</span>
-            </a>
+            <div class="sidebar-group-row">
+              <a href="#\${l.id}" class="sidebar-group-label sidebar-kind-link" data-section-id="\${l.id}">
+                <span class="sidebar-kind-icon">\${l.icon}</span>
+                <span class="sidebar-kind-label">\${escapeHtml(l.label)}</span>
+                <span class="sidebar-kind-count">\${l.items.length}</span>
+              </a>
+              <button class="sidebar-fold-btn" aria-label="Toggle \${escapeHtml(l.label)}">\${chevronSvg()}</button>
+            </div>
             <ul class="sidebar-item-list">
               \${l.items.map(item => \`<li><a href="#\${item.anchor}" class="sidebar-item-link">\${escapeHtml(item.name)}</a></li>\`).join('')}
             </ul>
@@ -438,6 +450,11 @@ export const scripts = `
     });
     html += '</ul>';
     kindsPanel.innerHTML = html;
+
+    // Fold button toggles the group
+    kindsPanel.querySelectorAll('.sidebar-fold-btn').forEach(btn => {
+      btn.addEventListener('click', () => btn.closest('.sidebar-group').classList.toggle('collapsed'));
+    });
 
     // Smooth scroll for all sidebar links
     kindsPanel.querySelectorAll('a[href^="#"]').forEach(a => {
@@ -468,6 +485,10 @@ export const scripts = `
       }, { root: null, rootMargin: '-10% 0px -60% 0px', threshold: 0 });
       links.forEach(l => { if (l.el) spyObserver.observe(l.el); });
     }
+  }
+
+  function chevronSvg() {
+    return '<svg class="sidebar-chevron" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><polyline points="3,5 8,11 13,5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
 
   function idToLabel(id) {
