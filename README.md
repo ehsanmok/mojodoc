@@ -1,5 +1,8 @@
 # mojodoc
 
+[![CI](https://github.com/ehsanmok/mojodoc/actions/workflows/ci.yml/badge.svg)](https://github.com/ehsanmok/mojodoc/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 API documentation generator for Mojo🔥.
 
 > [!WARNING]
