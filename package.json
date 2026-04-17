@@ -16,16 +16,17 @@
     "format:check": "prettier --check \"packages/*/src/**/*.ts\""
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
-    "eslint": "^8.56.0",
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^16.0.0",
     "prettier": "^3.2.0",
-    "typescript": "^5.3.3",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
     "vite-tsconfig-paths": "^6.0.5",
-    "vitest": "^1.2.0"
+    "vitest": "^3.0.0"
   },
-  "packageManager": "pnpm@8.14.0",
+  "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=18"
   }

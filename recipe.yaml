@@ -39,10 +39,10 @@ build:
 requirements:
   build:
     - nodejs >=20
-    - pnpm >=8
+    - pnpm >=9
   host:
     - nodejs >=20
-    - pnpm >=8
+    - pnpm >=9
   run:
     - nodejs >=20
 

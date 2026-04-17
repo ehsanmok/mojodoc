@@ -183,9 +183,7 @@ export async function build(options: BuildOptions): Promise<void> {
 interface PipelineParams {
   packagePath: string;
   outDir: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   options: BuildOptions;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: Awaited<ReturnType<typeof loadConfig>>;
   spinner?: ReturnType<typeof ora>;
 }
