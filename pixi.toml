@@ -23,7 +23,7 @@ nodejs = ">=20"
 pnpm = ">=8"
 
 [feature.dev.dependencies]
-mojo = "<2.0"
+mojo = "==1.0.0rc0"
 pre-commit = ">=4.2.0,<5"
 
 [environments]
