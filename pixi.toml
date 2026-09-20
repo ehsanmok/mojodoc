@@ -35,7 +35,7 @@ nodejs = ">=20"
 pnpm = ">=8"
 
 [feature.dev.dependencies]
-mojo = ">=1.0.0,<1.1.0"
+mojo = ">=1.1.0,<2.0.0"
 pre-commit = ">=4.2.0,<5"
 
 [environments]
